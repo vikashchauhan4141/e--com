@@ -4,6 +4,8 @@ const ApiResponse = require('../utils/ApiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const generateToken = require('../utils/generateToken');
 const { registerUser, loginUser } = require('../services/auth.service');
+const emailService = require('../services/email.service');
+
 
 const cookieOptions = {
   httpOnly: true,
@@ -45,6 +47,11 @@ const register = asyncHandler(async (req, res) => {
     email: email.trim().toLowerCase(),
     password,
     phone,
+  });
+
+  // Trigger welcome email in background
+  emailService.sendWelcomeEmail(user).catch((err) => {
+    console.error('Failed to send welcome email:', err);
   });
 
   sendAuthResponse(res, 201, user, 'Account created successfully');

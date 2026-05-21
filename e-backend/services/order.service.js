@@ -2,6 +2,8 @@ const Address = require('../models/address.model');
 const Cart = require('../models/cart.model');
 const Order = require('../models/order.model');
 const Product = require('../models/product.model');
+const User = require('../models/user.model');
+const emailService = require('./email.service');
 const ApiError = require('../utils/ApiError');
 const { calculatePricing } = require('../utils/pricing');
 const { getOrCreateCart, serializeCart } = require('./cart.service');
@@ -112,6 +114,19 @@ const createOrderFromCart = async (userId, payload = {}) => {
   });
 
   await Cart.updateOne({ user: userId }, { $set: { items: [], couponCode: '' } });
+
+  // Fetch user and trigger order invoice in background asynchronously
+  User.findById(userId)
+    .then((user) => {
+      if (user) {
+        emailService.sendOrderConfirmationEmail(user, order).catch((err) => {
+          console.error('Failed to send order confirmation email:', err);
+        });
+      }
+    })
+    .catch((err) => {
+      console.error('Failed to look up user for order confirmation email:', err);
+    });
 
   return order;
 };
