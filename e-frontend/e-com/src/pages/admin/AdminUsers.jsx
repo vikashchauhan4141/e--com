@@ -3,7 +3,8 @@ import {
   IoSearchOutline, 
   IoShieldCheckmarkOutline, 
   IoPersonOutline,
-  IoSyncOutline
+  IoSyncOutline,
+  IoTrashOutline
 } from 'react-icons/io5';
 import { api } from '../../utils/api';
 import { AuthContext } from '../../context/AuthContext';
@@ -78,6 +79,53 @@ export const AdminUsers = () => {
     }
   };
 
+  // Toggle user's active status (Enable/Disable)
+  const handleStatusToggle = async (userId, currentStatus) => {
+    if (userId === currentUser._id) {
+      toast.error('Self-deactivation or modifying your own status is blocked');
+      return;
+    }
+
+    const nextStatus = !currentStatus;
+    const actionText = nextStatus ? 'enable' : 'disable';
+    
+    if (!window.confirm(`Are you absolutely sure you want to ${actionText} this user's account?`)) {
+      return;
+    }
+
+    try {
+      const loadingToast = toast.loading('Updating user status...');
+      await api.patch(`/admin/users/${userId}/status`, { isActive: nextStatus });
+      toast.dismiss(loadingToast);
+      toast.success(`Account successfully ${nextStatus ? 'enabled' : 'disabled'}`);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.message || 'Failed to update user status');
+    }
+  };
+
+  // Permanently delete user account
+  const handleDeleteUser = async (userId) => {
+    if (userId === currentUser._id) {
+      toast.error('Self-deletion or de-registering your own console session is blocked');
+      return;
+    }
+
+    if (!window.confirm('WARNING: Are you absolutely sure you want to PERMANENTLY delete this user account? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const loadingToast = toast.loading('Deleting user from database...');
+      await api.delete(`/admin/users/${userId}`);
+      toast.dismiss(loadingToast);
+      toast.success('User permanently deleted');
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete user');
+    }
+  };
+
   // Users are already filtered and paginated from backend
   const filteredUsers = users;
 
@@ -138,6 +186,7 @@ export const AdminUsers = () => {
                 <th className="p-4 font-semibold">Client Name</th>
                 <th className="p-4 font-semibold">Contact Email</th>
                 <th className="p-4 font-semibold">Authorized Role</th>
+                <th className="p-4 font-semibold">Account Status</th>
                 <th className="p-4 font-semibold">Joined Date</th>
                 <th className="p-4 font-semibold text-right">Access Curation</th>
               </tr>
@@ -191,24 +240,63 @@ export const AdminUsers = () => {
                       </span>
                     </td>
 
+                    {/* Account Status */}
+                    <td className="p-4">
+                      {item.isActive !== false ? (
+                        <span className="px-2.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1.5 bg-green-50 text-green-600 border border-green-200 uppercase tracking-wider text-[9px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1.5 bg-error/10 text-error border border-error/20 uppercase tracking-wider text-[9px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-error"></span>
+                          Disabled
+                        </span>
+                      )}
+                    </td>
+
                     {/* Joined Date */}
                     <td className="p-4 text-xs text-secondary">{joinedDate}</td>
 
                     {/* Access Controls */}
                     <td className="p-4 text-right">
                       {isSelf ? (
-                        <span className="text-[9px] text-secondary/60 tracking-wider uppercase pr-2">Console Session</span>
+                        <span className="text-[9px] text-secondary/60 tracking-wider uppercase pr-2 font-semibold">Console Session</span>
                       ) : (
-                        <button
-                          onClick={() => handleRoleToggle(item._id, item.role)}
-                          className={`text-[9px] font-bold tracking-widest uppercase border rounded px-3 py-1.5 transition-colors ${
-                            item.role === 'admin' 
-                              ? 'border-error text-error hover:bg-error/10' 
-                              : 'border-primary text-primary hover:bg-primary/10'
-                          }`}
-                        >
-                          {item.role === 'admin' ? 'Demote Access' : 'Promote Access'}
-                        </button>
+                        <div className="flex items-center justify-end gap-2.5">
+                          {/* Role Toggle Button */}
+                          <button
+                            onClick={() => handleRoleToggle(item._id, item.role)}
+                            className={`text-[9px] font-bold tracking-widest uppercase border rounded px-3 py-1.5 transition-colors ${
+                              item.role === 'admin' 
+                                ? 'border-error text-error hover:bg-error/10' 
+                                : 'border-primary text-primary hover:bg-primary/10'
+                            }`}
+                          >
+                            {item.role === 'admin' ? 'Demote Access' : 'Promote Access'}
+                          </button>
+
+                          {/* Status Toggle Button */}
+                          <button
+                            onClick={() => handleStatusToggle(item._id, item.isActive !== false)}
+                            className={`text-[9px] font-bold tracking-widest uppercase border rounded px-3 py-1.5 transition-colors ${
+                              item.isActive !== false
+                                ? 'border-secondary text-secondary hover:bg-secondary/10'
+                                : 'border-primary text-primary hover:bg-primary/10'
+                            }`}
+                          >
+                            {item.isActive !== false ? 'Disable' : 'Enable'}
+                          </button>
+
+                          {/* Permanently Delete Button */}
+                          <button
+                            onClick={() => handleDeleteUser(item._id)}
+                            title="Permanently Delete User"
+                            className="p-1.5 text-error hover:bg-error/10 border border-transparent hover:border-error/20 rounded transition-colors"
+                          >
+                            <IoTrashOutline size={14} />
+                          </button>
+                        </div>
                       )}
                     </td>
 

@@ -10,6 +10,8 @@ const {
   deleteOrder,
   getUsers,
   updateUserRole,
+  updateUserStatus,
+  deleteUser,
   getCategoriesAdmin,
   createCategoryAdmin,
   updateCategoryAdmin,
@@ -48,5 +50,7 @@ router.delete('/orders/:id', deleteOrder);
 // Users management
 router.get('/users', getUsers);
 router.patch('/users/:id/role', updateUserRole);
+router.patch('/users/:id/status', updateUserStatus);
+router.delete('/users/:id', deleteUser);
 
 module.exports = router;

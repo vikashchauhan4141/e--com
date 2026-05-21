@@ -385,6 +385,53 @@ const updateUserRole = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user }, 'User role updated successfully'));
 });
 
+// @desc    Update user active status
+// @route   PATCH /api/admin/users/:id/status
+// @access  Private/Admin
+const updateUserStatus = asyncHandler(async (req, res) => {
+  const { isActive } = req.body;
+
+  if (isActive === undefined) {
+    throw new ApiError(400, 'isActive field is required');
+  }
+
+  if (req.user._id.toString() === req.params.id) {
+    throw new ApiError(400, 'Self-deactivation or modifying your own active status is blocked');
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  user.isActive = isActive;
+  await user.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, { user }, 'User active status updated successfully'));
+});
+
+// @desc    Delete user account
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+const deleteUser = asyncHandler(async (req, res) => {
+  if (req.user._id.toString() === req.params.id) {
+    throw new ApiError(400, 'Self-deletion or de-registering your own console session is blocked');
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  await User.findByIdAndDelete(req.params.id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, 'User permanently deleted successfully'));
+});
+
 // @desc    Get all categories (including inactive ones)
 // @route   GET /api/admin/categories
 // @access  Private/Admin
@@ -573,6 +620,8 @@ module.exports = {
   deleteOrder,
   getUsers,
   updateUserRole,
+  updateUserStatus,
+  deleteUser,
   getCategoriesAdmin,
   createCategoryAdmin,
   updateCategoryAdmin,
