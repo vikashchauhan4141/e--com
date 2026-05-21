@@ -11,9 +11,11 @@ import { api } from '../../utils/api';
 import { AuthContext } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Pagination } from '../../components/common/Pagination';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export const AdminUsers = () => {
   const { user: currentUser } = useContext(AuthContext);
+  const confirm = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,7 +67,15 @@ export const AdminUsers = () => {
     const nextRole = currentRole === 'admin' ? 'user' : 'admin';
     const actionText = nextRole === 'admin' ? 'promote this user to Admin?' : 'demote this user to Customer?';
     
-    if (!window.confirm(`Are you absolutely sure you want to ${actionText}`)) {
+    const confirmed = await confirm({
+      title: 'Update User Access',
+      message: `Are you absolutely sure you want to ${actionText}`,
+      confirmText: nextRole === 'admin' ? 'Promote' : 'Demote',
+      cancelText: 'Cancel',
+      isDanger: nextRole === 'user'
+    });
+    
+    if (!confirmed) {
       return;
     }
 
@@ -90,7 +100,15 @@ export const AdminUsers = () => {
     const nextStatus = !currentStatus;
     const actionText = nextStatus ? 'enable' : 'disable';
     
-    if (!window.confirm(`Are you absolutely sure you want to ${actionText} this user's account?`)) {
+    const confirmed = await confirm({
+      title: nextStatus ? 'Enable User Account' : 'Disable User Account',
+      message: `Are you absolutely sure you want to ${actionText} this user's account?`,
+      confirmText: nextStatus ? 'Enable' : 'Disable',
+      cancelText: 'Cancel',
+      isDanger: !nextStatus
+    });
+    
+    if (!confirmed) {
       return;
     }
 
@@ -112,7 +130,15 @@ export const AdminUsers = () => {
       return;
     }
 
-    if (!window.confirm('WARNING: Are you absolutely sure you want to PERMANENTLY delete this user account? This action cannot be undone.')) {
+    const confirmed = await confirm({
+      title: 'Delete User Account',
+      message: 'WARNING: Are you absolutely sure you want to PERMANENTLY delete this user account? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDanger: true
+    });
+
+    if (!confirmed) {
       return;
     }
 

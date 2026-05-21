@@ -12,8 +12,10 @@ import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { ImageUploadDropzone } from '../../components/admin/ImageUploadDropzone';
 import { Pagination } from '../../components/common/Pagination';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export const AdminProducts = () => {
+  const confirm = useConfirm();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -229,7 +231,15 @@ export const AdminProducts = () => {
 
   // Delete product handler
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you absolutely sure you want to delete this piece from the catalog? This is permanent.')) {
+    const confirmed = await confirm({
+      title: 'Delete Catalog Piece',
+      message: 'Are you absolutely sure you want to delete this piece from the catalog? This is permanent.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDanger: true
+    });
+
+    if (!confirmed) {
       return;
     }
 

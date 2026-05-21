@@ -11,8 +11,10 @@ import {
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { ImageUploadDropzone } from '../../components/admin/ImageUploadDropzone';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export const AdminCategories = () => {
+  const confirm = useConfirm();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -135,7 +137,15 @@ export const AdminCategories = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you absolutely sure you want to delete this category tag? All linked product displays will be affected.')) {
+    const confirmed = await confirm({
+      title: 'Delete Category Tag',
+      message: 'Are you absolutely sure you want to delete this category tag? All linked product displays will be affected.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDanger: true
+    });
+
+    if (!confirmed) {
       return;
     }
 

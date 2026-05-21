@@ -13,8 +13,10 @@ import {
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { Pagination } from '../../components/common/Pagination';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export const AdminOrders = () => {
+  const confirm = useConfirm();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,8 +122,15 @@ export const AdminOrders = () => {
 
   // Permanently delete an order from database ledgers
   const handleDeleteOrder = async (id) => {
-    const confirmDelete = window.confirm('Are you sure you want to permanently delete this order? This action cannot be undone.');
-    if (!confirmDelete) return;
+    const confirmed = await confirm({
+      title: 'Delete Order Ledger',
+      message: 'Are you sure you want to permanently delete this order? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDanger: true
+    });
+    
+    if (!confirmed) return;
 
     try {
       const loadingToast = toast.loading('Deleting order ledgers...');

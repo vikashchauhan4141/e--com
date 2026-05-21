@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 
 // Layout components
 import { Navbar } from './components/layout/Navbar';
@@ -111,47 +112,49 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            
-            {/* Scroll reset utility */}
-            <ScrollToTop />
-            
-            {/* Toast Notifications */}
-            <Toaster 
-              position="bottom-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: '#1a1c1c',
-                  color: '#ffffff',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '11px',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  padding: '12px 20px',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#967bb6',
-                    secondary: '#ffffff',
+        <ConfirmProvider>
+          <CartProvider>
+            <WishlistProvider>
+              
+              {/* Scroll reset utility */}
+              <ScrollToTop />
+              
+              {/* Toast Notifications */}
+              <Toaster 
+                position="bottom-right"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: '#1a1c1c',
+                    color: '#ffffff',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '11px',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '12px 20px',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#ba1a1a',
-                    secondary: '#ffffff',
+                  success: {
+                    iconTheme: {
+                      primary: '#967bb6',
+                      secondary: '#ffffff',
+                    },
                   },
-                },
-              }}
-            />
+                  error: {
+                    iconTheme: {
+                      primary: '#ba1a1a',
+                      secondary: '#ffffff',
+                    },
+                  },
+                }}
+              />
 
-            <AppContent />
+              <AppContent />
 
-          </WishlistProvider>
-        </CartProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </ConfirmProvider>
       </AuthProvider>
     </Router>
   );
