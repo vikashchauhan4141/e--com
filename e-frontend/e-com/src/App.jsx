@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
@@ -11,27 +11,39 @@ import { WishlistProvider } from './context/WishlistContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 
-// Pages
-import { Home } from './pages/Home';
-import { Shop } from './pages/Shop';
-import { ProductDetail } from './pages/ProductDetail';
-import { Cart } from './pages/Cart';
-import { Wishlist } from './pages/Wishlist';
-import { Checkout } from './pages/Checkout';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Profile } from './pages/Profile';
-import { Contact } from './pages/Contact';
-import { NotFound } from './pages/NotFound';
-
-// Admin Core
+// Admin Core & Layout
 import { AdminRoute } from './components/layout/AdminRoute';
 import { AdminLayout } from './components/admin/AdminLayout';
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { AdminProducts } from './pages/admin/AdminProducts';
-import { AdminOrders } from './pages/admin/AdminOrders';
-import { AdminUsers } from './pages/admin/AdminUsers';
-import { AdminCategories } from './pages/admin/AdminCategories';
+
+// Lazy Loaded Pages (Code Splitting)
+const Home = React.lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
+const Shop = React.lazy(() => import('./pages/Shop').then(m => ({ default: m.Shop })));
+const ProductDetail = React.lazy(() => import('./pages/ProductDetail').then(m => ({ default: m.ProductDetail })));
+const Cart = React.lazy(() => import('./pages/Cart').then(m => ({ default: m.Cart })));
+const Wishlist = React.lazy(() => import('./pages/Wishlist').then(m => ({ default: m.Wishlist })));
+const Checkout = React.lazy(() => import('./pages/Checkout').then(m => ({ default: m.Checkout })));
+const Login = React.lazy(() => import('./pages/Login').then(m => ({ default: m.Login })));
+const Register = React.lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
+const Profile = React.lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
+const Contact = React.lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const NotFound = React.lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
+
+// Lazy Loaded Admin Pages
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AdminProducts = React.lazy(() => import('./pages/admin/AdminProducts').then(m => ({ default: m.AdminProducts })));
+const AdminOrders = React.lazy(() => import('./pages/admin/AdminOrders').then(m => ({ default: m.AdminOrders })));
+const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers').then(m => ({ default: m.AdminUsers })));
+const AdminCategories = React.lazy(() => import('./pages/admin/AdminCategories').then(m => ({ default: m.AdminCategories })));
+
+// Premium Glassmorphic Fallback Loader for dynamic suspense transitions
+const PageLoader = () => (
+  <div className="min-h-[60vh] flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <span className="text-[8px] tracking-[0.25em] text-secondary uppercase animate-pulse">Entering Atelier...</span>
+    </div>
+  </div>
+);
 
 // Scroll Restoration Utility - high-fidelity user touch
 const ScrollToTop = () => {
@@ -56,30 +68,32 @@ const AppContent = () => {
 
       {/* Dynamic Pages Area */}
       <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/contact" element={<Contact />} />
-          
-          {/* Secure Admin Workspace Routes */}
-          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="categories" element={<AdminCategories />} />
-          </Route>
-          
-          {/* Fallback route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/contact" element={<Contact />} />
+            
+            {/* Secure Admin Workspace Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="categories" element={<AdminCategories />} />
+            </Route>
+            
+            {/* Fallback route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
 
       {/* Global Brand Footer */}
