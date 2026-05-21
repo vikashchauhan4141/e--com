@@ -73,6 +73,12 @@ export const Login = () => {
             required
           />
 
+          <div className="flex justify-end -mt-2">
+            <Link to="/forgot-password" className="text-secondary hover:text-primary text-[10px] uppercase tracking-wider transition-colors duration-150">
+              Forgot password?
+            </Link>
+          </div>
+
           <Button type="submit" variant="primary" className="w-full py-3.5 mt-2">
             Sign In
           </Button>

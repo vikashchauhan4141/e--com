@@ -77,6 +77,16 @@ export const Profile = () => {
     }
   };
 
+  const handleInstantForgot = async () => {
+    const loadingToast = toast.loading('Dispatching password reset link...');
+    try {
+      await api.post('/auth/forgot-password', { email: user.email });
+      toast.success('Reset link dispatched to your inbox!', { id: loadingToast });
+    } catch (err) {
+      toast.error(err.message || 'Failed to dispatch reset link.', { id: loadingToast });
+    }
+  };
+
   const handleAddAddress = (e) => {
     e.preventDefault();
     if (!addrName || !addrStreet || !addrCity || !addrState || !addrZip || !addrPhone) {
@@ -375,6 +385,16 @@ export const Profile = () => {
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
                   />
+                  
+                  <div className="flex justify-end -mt-2">
+                    <button
+                      type="button"
+                      onClick={handleInstantForgot}
+                      className="text-secondary hover:text-primary text-[9px] uppercase tracking-wider transition-colors duration-150"
+                    >
+                      Forgot current password?
+                    </button>
+                  </div>
                   
                   <Input
                     type="password"

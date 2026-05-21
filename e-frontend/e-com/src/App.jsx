@@ -27,6 +27,8 @@ const Register = React.lazy(() => import('./pages/Register').then(m => ({ defaul
 const Profile = React.lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 const Contact = React.lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const NotFound = React.lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
 
 // Lazy Loaded Admin Pages
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -80,6 +82,8 @@ const AppContent = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             
             {/* Secure Admin Workspace Routes */}
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>

@@ -157,4 +157,93 @@ describe('Auth Integration Tests', () => {
     expect(updateRes.statusCode).toBe(401);
     expect(updateRes.body.success).toBe(false);
   });
+
+  it('should fail forgot password for non-existent email', async () => {
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'nonexistent@stylee.com' });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should generate and store secure reset token in DB for valid email', async () => {
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: testUser.email });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    const user = await User.findOne({ email: testUser.email.toLowerCase() });
+    expect(user.passwordResetToken).toBeDefined();
+    expect(user.passwordResetExpires).toBeDefined();
+    expect(new Date(user.passwordResetExpires).getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it('should fail reset password if token is invalid or expired', async () => {
+    const crypto = require('crypto');
+    // Test invalid token
+    const invalidRes = await request(app)
+      .patch('/api/auth/reset-password/some_invalid_token')
+      .send({ newPassword: 'newresetpassword123' });
+
+    expect(invalidRes.statusCode).toBe(400);
+    expect(invalidRes.body.success).toBe(false);
+
+    // Test expired token
+    const expiredTokenRaw = 'expired_reset_token';
+    const hashedExpiredToken = crypto.createHash('sha256').update(expiredTokenRaw).digest('hex');
+    
+    await User.updateOne(
+      { email: testUser.email.toLowerCase() },
+      {
+        passwordResetToken: hashedExpiredToken,
+        passwordResetExpires: Date.now() - 1000 // Expired 1 second ago
+      }
+    );
+
+    const expiredRes = await request(app)
+      .patch(`/api/auth/reset-password/${expiredTokenRaw}`)
+      .send({ newPassword: 'newresetpassword123' });
+
+    expect(expiredRes.statusCode).toBe(400);
+    expect(expiredRes.body.success).toBe(false);
+  });
+
+  it('should successfully reset password with valid token and allow login', async () => {
+    const crypto = require('crypto');
+    const validTokenRaw = 'valid_reset_token';
+    const hashedValidToken = crypto.createHash('sha256').update(validTokenRaw).digest('hex');
+
+    await User.updateOne(
+      { email: testUser.email.toLowerCase() },
+      {
+        passwordResetToken: hashedValidToken,
+        passwordResetExpires: Date.now() + 10 * 60 * 1000 // Valid for 10 mins
+      }
+    );
+
+    const res = await request(app)
+      .patch(`/api/auth/reset-password/${validTokenRaw}`)
+      .send({ newPassword: 'newresetpassword123' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+
+    // Verify token was cleared
+    const user = await User.findOne({ email: testUser.email.toLowerCase() });
+    expect(user.passwordResetToken).toBeUndefined();
+    expect(user.passwordResetExpires).toBeUndefined();
+
+    // Verify we can login with the new password
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: testUser.email,
+        password: 'newresetpassword123'
+      });
+    expect(loginRes.statusCode).toBe(200);
+    expect(loginRes.body.success).toBe(true);
+  });
 });

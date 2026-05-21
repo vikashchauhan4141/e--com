@@ -1,8 +1,10 @@
+const crypto = require('crypto');
 const env = require('../config/env');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const generateToken = require('../utils/generateToken');
+const User = require('../models/user.model');
 const { registerUser, loginUser } = require('../services/auth.service');
 const emailService = require('../services/email.service');
 
@@ -85,9 +87,79 @@ const getMe = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user: req.user }, 'Current user fetched successfully'));
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, 'Email is required');
+  }
+
+  const user = await User.findOne({ email: email.trim().toLowerCase() });
+  if (!user) {
+    throw new ApiError(404, 'User with this email does not exist');
+  }
+
+  // 1. Generate secure random token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // 2. Hash token and save to DB with 10-minute expiry
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  await user.save({ validateBeforeSave: false });
+
+  // 3. Construct reset URL
+  const resetUrl = `${env.clientUrl}/reset-password/${resetToken}`;
+
+  // 4. Send transactional email
+  emailService.sendPasswordResetEmail(user, resetUrl).catch((err) => {
+    console.error('Failed to send password reset email:', err);
+  });
+
+  res.status(200).json(new ApiResponse(200, null, 'Password reset link sent successfully'));
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword) {
+    throw new ApiError(400, 'New password is required');
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, 'New password must be at least 6 characters');
+  }
+
+  // Hash the incoming parameter token to match stored hash
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Find user with active token
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    throw new ApiError(400, 'Reset token is invalid or has expired');
+  }
+
+  // Set new password (triggers Mongoose hash pre-save hook) and clear reset fields
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+
+  await user.save();
+
+  res.status(200).json(new ApiResponse(200, null, 'Password reset successfully'));
+});
+
 module.exports = {
   register,
   login,
   logout,
   getMe,
+  forgotPassword,
+  resetPassword,
 };

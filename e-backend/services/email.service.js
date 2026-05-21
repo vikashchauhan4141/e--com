@@ -340,7 +340,36 @@ const sendOrderConfirmationEmail = async (user, order) => {
   });
 };
 
+/**
+ * Send password reset link to a user
+ */
+const sendPasswordResetEmail = async (user, resetUrl) => {
+  const title = 'Reset Your Password';
+  const content = `
+    <h2>Password Reset Request</h2>
+    <p>Hi ${user.name},</p>
+    <p>We received a request to reset your password for your <strong>Stylee</strong> account.</p>
+    <p>Click the button below to set up a new password. This link is only active for <strong>10 minutes</strong> for your security.</p>
+    <div style="text-align: center;">
+      <a href="${resetUrl}" class="btn" target="_blank">Reset Password</a>
+    </div>
+    <p style="margin-top: 25px;">If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
+    <p style="margin-bottom: 0;">Warm regards,<br><strong>The Stylee Concierge Team</strong></p>
+  `;
+
+  const html = getBaseTemplate(title, content);
+  const text = `Reset your password by visiting this link: ${resetUrl}. This link is valid for 10 minutes.`;
+
+  return sendMail({
+    to: user.email,
+    subject: 'Stylee Fashion - Password Reset Request',
+    html,
+    text,
+  });
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendOrderConfirmationEmail,
+  sendPasswordResetEmail,
 };
