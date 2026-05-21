@@ -69,10 +69,10 @@ export const AdminOrders = () => {
     }
   };
 
-  // Reset page to 1 when filter status changes
-  useEffect(() => {
+  const handleFilterStatusChange = (status) => {
+    setFilterStatus(status);
     setPage(1);
-  }, [filterStatus]);
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -343,7 +343,7 @@ export const AdminOrders = () => {
           return (
             <button
               key={tab}
-              onClick={() => setFilterStatus(tab)}
+              onClick={() => handleFilterStatusChange(tab)}
               className={`pb-4 text-[10px] font-bold tracking-widest uppercase relative transition-colors duration-200 ${
                 isActive ? 'text-primary font-bold' : 'text-secondary hover:text-ink'
               }`}

@@ -38,6 +38,7 @@ export const Shop = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
+      setPage(1);
     }, 400);
     return () => clearTimeout(handler);
   }, [searchQuery]);
@@ -57,10 +58,7 @@ export const Shop = () => {
     fetchCategories();
   }, []);
 
-  // Reset page to 1 when filters change to avoid empty pages
-  useEffect(() => {
-    setPage(1);
-  }, [categoryParam, selectedGender, selectedSize, selectedColor, priceRange, debouncedSearch, sortBy]);
+  // No cascading useEffect needed; page resets are handled inline in event handlers to batch updates.
 
   // Fetch products dynamically when filters, sorting or page change
   useEffect(() => {
@@ -109,6 +107,32 @@ export const Shop = () => {
       searchParams.set('category', catName);
     }
     setSearchParams(searchParams);
+    setPage(1);
+  };
+
+  const handleGenderChange = (gender) => {
+    setSelectedGender(prev => prev === gender ? '' : gender);
+    setPage(1);
+  };
+
+  const handleSizeChange = (size) => {
+    setSelectedSize(prev => prev === size ? '' : size);
+    setPage(1);
+  };
+
+  const handleColorChange = (color) => {
+    setSelectedColor(prev => prev === color ? '' : color);
+    setPage(1);
+  };
+
+  const handlePriceRangeChange = (value) => {
+    setPriceRange(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (value) => {
+    setSortBy(value);
+    setPage(1);
   };
 
   const handleResetFilters = () => {
@@ -119,6 +143,7 @@ export const Shop = () => {
     setSelectedColor('');
     setPriceRange(15000);
     setSortBy('default');
+    setPage(1);
   };
 
   const FilterSidebarContent = () => (
@@ -151,7 +176,7 @@ export const Shop = () => {
           {GENDERS.map((gender) => (
             <button
               key={gender}
-              onClick={() => setSelectedGender(prev => prev === gender ? '' : gender)}
+              onClick={() => handleGenderChange(gender)}
               className={`px-3 py-1.5 rounded text-[10px] font-sans font-semibold tracking-wider uppercase border transition-all ${
                 selectedGender === gender
                   ? 'bg-ink text-white border-ink'
@@ -176,7 +201,7 @@ export const Shop = () => {
           max="15000"
           step="500"
           value={priceRange}
-          onChange={(e) => setPriceRange(Number(e.target.value))}
+          onChange={(e) => handlePriceRangeChange(Number(e.target.value))}
           className="w-full accent-primary bg-surface-container h-1.5 rounded-lg appearance-none cursor-pointer"
         />
         <div className="flex items-center justify-between text-[10px] font-sans text-outline mt-0.5">
@@ -192,7 +217,7 @@ export const Shop = () => {
           {SIZES.map((size) => (
             <button
               key={size}
-              onClick={() => setSelectedSize(prev => prev === size ? '' : size)}
+              onClick={() => handleSizeChange(size)}
               className={`w-9 h-9 rounded flex items-center justify-center text-[10px] font-sans font-semibold border transition-all ${
                 selectedSize === size
                   ? 'bg-primary text-white border-primary'
@@ -212,7 +237,7 @@ export const Shop = () => {
           {COLORS.map((color) => (
             <button
               key={color}
-              onClick={() => setSelectedColor(prev => prev === color ? '' : color)}
+              onClick={() => handleColorChange(color)}
               className={`px-3 py-1.5 rounded text-[10px] font-sans font-semibold tracking-wider uppercase border transition-all ${
                 selectedColor === color
                   ? 'bg-ink text-white border-ink'
@@ -275,7 +300,7 @@ export const Shop = () => {
             <span className="hidden sm:inline font-heading font-semibold text-[9px] tracking-widest uppercase text-secondary">Sort:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => handleSortChange(e.target.value)}
               className="bg-transparent border border-outline-variant rounded px-3 py-2.5 font-sans text-[11px] tracking-wider uppercase text-ink font-semibold focus:outline-none focus:border-primary"
             >
               <option value="default">Trending</option>

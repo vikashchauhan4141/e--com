@@ -39,10 +39,10 @@ export const AdminUsers = () => {
     }
   };
 
-  // Reset page to 1 when search filters change
-  useEffect(() => {
+  const handleSearchChange = (value) => {
+    setSearch(value);
     setPage(1);
-  }, [search]);
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -112,7 +112,7 @@ export const AdminUsers = () => {
           type="text" 
           placeholder="Search user registry by name, email, credentials..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full text-xs bg-surface-container pl-10 pr-4 py-2.5 rounded border border-outline focus:border-ink focus:outline-none placeholder-secondary transition-colors"
         />
       </div>
