@@ -22,6 +22,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
 import { Contact } from './pages/Contact';
+import { NotFound } from './pages/NotFound';
 
 // Admin Core
 import { AdminRoute } from './components/layout/AdminRoute';
@@ -77,7 +78,7 @@ const AppContent = () => {
           </Route>
           
           {/* Fallback route */}
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
 
