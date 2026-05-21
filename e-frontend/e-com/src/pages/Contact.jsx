@@ -125,7 +125,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-heading font-semibold text-[10px] tracking-wider uppercase text-ink mb-1">ATELIER LOCATION</h4>
-                    <p className="text-xs leading-relaxed text-secondary-container">
+                    <p className="text-xs leading-relaxed text-secondary">
                       Stylee Premium Atelier,<br />
                       Knowledge Park III, Greater Noida,<br />
                       Uttar Pradesh, India
@@ -142,7 +142,7 @@ export const Contact = () => {
                     <h4 className="font-heading font-semibold text-[10px] tracking-wider uppercase text-ink mb-1">ELECTRONIC CARE</h4>
                     <a 
                       href="mailto:vikashchauhan414141@gmail.com" 
-                      className="text-xs text-secondary-container hover:text-primary transition-colors block break-all"
+                      className="text-xs text-secondary hover:text-primary transition-colors block break-all"
                     >
                       vikashchauhan414141@gmail.com
                     </a>
@@ -158,7 +158,7 @@ export const Contact = () => {
                     <h4 className="font-heading font-semibold text-[10px] tracking-wider uppercase text-ink mb-1">CONCIERGE HELPLINE</h4>
                     <a 
                       href="tel:9910484141" 
-                      className="text-xs text-secondary-container hover:text-primary transition-colors block font-semibold"
+                      className="text-xs text-secondary hover:text-primary transition-colors block font-semibold"
                     >
                       +91 99104 84141
                     </a>
@@ -172,7 +172,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-heading font-semibold text-[10px] tracking-wider uppercase text-ink mb-1">ATELIER HOURS</h4>
-                    <p className="text-xs text-secondary-container">
+                    <p className="text-xs text-secondary">
                       Monday — Saturday: 10:00 AM — 7:00 PM IST<br />
                       Closed on Sundays and National Holidays
                     </p>

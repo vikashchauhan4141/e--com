@@ -96,10 +96,8 @@ export const Home = () => {
                   transition={{ delay: 0.9 }}
                   className="mt-6"
                 >
-                  <Link to="/shop">
-                    <Button variant="primary" className="bg-white text-ink border-white hover:bg-primary-accent hover:text-white hover:border-primary-accent py-3.5 px-8">
-                      Explore Atelier
-                    </Button>
+                  <Link to="/shop" className="inline-flex items-center justify-center font-heading font-semibold text-xs tracking-widest uppercase transition-all duration-300 rounded bg-white text-ink border border-white hover:bg-primary-accent hover:text-white hover:border-primary-accent py-3.5 px-8 shadow-sm active:scale-[0.98]">
+                    Explore Atelier
                   </Link>
                 </motion.div>
                 
@@ -241,13 +239,12 @@ export const Home = () => {
               required
               className="flex-grow px-5 py-3.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded font-sans text-xs tracking-wider uppercase text-white placeholder-white/40 focus:outline-none focus:border-primary-accent focus:ring-1 focus:ring-primary-accent"
             />
-            <Button 
+            <button 
               type="submit" 
-              variant="primary" 
-              className="bg-white text-ink hover:bg-primary-accent hover:text-white border-white hover:border-primary-accent py-3.5"
+              className="inline-flex items-center justify-center font-heading font-semibold text-xs tracking-widest uppercase transition-all duration-300 rounded py-3.5 px-8 bg-white text-ink border border-white hover:bg-primary-accent hover:text-white hover:border-primary-accent shadow-sm active:scale-[0.98]"
             >
               Subscribe
-            </Button>
+            </button>
           </form>
 
         </div>
