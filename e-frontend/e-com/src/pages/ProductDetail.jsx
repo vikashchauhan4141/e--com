@@ -9,6 +9,7 @@ import { ProductCard } from '../components/shared/ProductCard';
 import { Button } from '../components/ui/Button';
 import { formatPrice } from '../utils/formatPrice';
 import { Badge } from '../components/ui/Badge';
+import { ProductDetailSkeleton } from '../components/ui/Skeleton';
 
 export const ProductDetail = () => {
   const { id } = useParams();
@@ -79,12 +80,7 @@ export const ProductDetail = () => {
   }, [id]);
 
   if (isLoading) {
-    return (
-      <div className="max-w-container mx-auto px-6 py-20 text-center flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
-        <p className="font-heading font-semibold text-[10px] tracking-widest text-primary uppercase">Loading Atelier Piece...</p>
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {
