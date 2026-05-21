@@ -1,0 +1,658 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{listings}
+
+\definecolor{primary}{HTML}{5B3E7A}
+\definecolor{muted}{HTML}{666666}
+\definecolor{codebg}{HTML}{F7F7F8}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=primary
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{E-Commerce Backend Blueprint}
+\rhead{Node.js + Express + MongoDB}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries\color{primary}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\setlist[itemize]{leftmargin=1.3em}
+\setlist[enumerate]{leftmargin=1.5em}
+
+\lstdefinestyle{code}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{codebg},
+  columns=fullflexible
+}
+
+\title{\textbf{Scalable Backend Plan for Stylee E-Commerce}}
+\author{Prepared for Node.js Backend Implementation}
+\date{May 21, 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Project Summary}
+
+Your frontend currently has the following user-facing flows:
+
+\begin{itemize}
+  \item Home page, shop page, category filtering, product search, product details, related products.
+  \item User login, register, profile update, saved addresses, and order history.
+  \item Cart, quantity update, promo code, wishlist, checkout, and contact form.
+  \item Current data source is mostly static JavaScript files and browser localStorage.
+\end{itemize}
+
+To make this project scalable, the backend should move these responsibilities to secure APIs, a database, file storage, payment gateway integrations, and admin controls.
+
+\section{How Many APIs Are Needed?}
+
+\subsection{Recommended Endpoint Count}
+
+\begin{longtable}{p{0.25\linewidth} p{0.18\linewidth} p{0.48\linewidth}}
+\toprule
+\textbf{Stage} & \textbf{Approx. APIs} & \textbf{Purpose} \\
+\midrule
+MVP & 35--45 & Enough for user auth, products, categories, cart, wishlist, checkout, orders, address book, and contact form. \\
+Scalable v1 & 60--75 & Adds admin product management, coupons, reviews, payment webhooks, inventory control, uploads, analytics, and order status management. \\
+Advanced v2 & 90+ & Adds returns, refunds, notifications, recommendations, vendor management, audit logs, and warehouse flows. \\
+\bottomrule
+\end{longtable}
+
+\textbf{Recommendation:} Start with the MVP plus a clean scalable structure. Do not build every advanced feature on day one, but design the folders, models, and middleware so new modules can be added without rewriting the backend.
+
+\section{Backend Technology Stack}
+
+\subsection{Core Stack}
+
+\begin{longtable}{p{0.28\linewidth} p{0.62\linewidth}}
+\toprule
+\textbf{Technology} & \textbf{Use} \\
+\midrule
+Node.js & JavaScript runtime for the backend. \\
+Express.js & REST API framework. \\
+MongoDB & Main database for products, users, orders, carts, and wishlist. \\
+Mongoose & MongoDB schema modeling and validation. \\
+JWT & Access-token based authentication. \\
+HTTP-only cookies & Safer token storage for web applications. \\
+Cloudinary or S3 & Product image and avatar uploads. \\
+Stripe or Razorpay & Payment processing. Razorpay is usually better for India-first stores. \\
+Nodemailer or Resend & Transactional emails such as order confirmation and contact replies. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Important Note About Current Backend}
+
+Your current \texttt{e-backend/package.json} includes \texttt{fs}. That package should be removed because Node.js already provides \texttt{fs} as a built-in module. You do not need to install it from npm.
+
+\section{Recommended Dependencies}
+
+\subsection{Production Dependencies}
+
+\begin{lstlisting}[style=code]
+npm install express mongoose dotenv cors helmet cookie-parser jsonwebtoken bcryptjs zod express-rate-limit morgan compression multer cloudinary nodemailer slugify nanoid
+\end{lstlisting}
+
+\subsection{Payment Dependency}
+
+Choose one payment gateway first:
+
+\begin{lstlisting}[style=code]
+# Option 1: India-first payments
+npm install razorpay
+
+# Option 2: International card payments
+npm install stripe
+\end{lstlisting}
+
+\subsection{Development Dependencies}
+
+\begin{lstlisting}[style=code]
+npm install -D nodemon eslint prettier jest supertest
+\end{lstlisting}
+
+\subsection{Dependency Purpose}
+
+\begin{longtable}{p{0.28\linewidth} p{0.62\linewidth}}
+\toprule
+\textbf{Package} & \textbf{Purpose} \\
+\midrule
+express & API server and routing. \\
+mongoose & MongoDB models and queries. \\
+dotenv & Environment variables. \\
+cors & Allow frontend to call backend safely. \\
+helmet & Security headers. \\
+cookie-parser & Read HTTP-only auth cookies. \\
+jsonwebtoken & Generate and verify auth tokens. \\
+bcryptjs & Hash user passwords. \\
+zod & Request body validation. \\
+express-rate-limit & Protect login/contact APIs from spam. \\
+morgan & Request logging in development. \\
+compression & Gzip/Brotli-style response compression. \\
+multer & Receive uploaded files. \\
+cloudinary & Store product/avatar images. \\
+nodemailer & Send emails. \\
+slugify & Create SEO-friendly product/category slugs. \\
+nanoid & Generate short public IDs where needed. \\
+razorpay/stripe & Payment order creation and webhook verification. \\
+nodemon & Restart server during development. \\
+jest + supertest & API testing. \\
+eslint + prettier & Code quality and formatting. \\
+\bottomrule
+\end{longtable}
+
+\section{Professional Folder Structure}
+
+\begin{lstlisting}[style=code]
+e-backend/
+  src/
+    app.js
+    server.js
+    config/
+      db.js
+      env.js
+      cloudinary.js
+      payment.js
+    modules/
+      auth/
+        auth.controller.js
+        auth.routes.js
+        auth.service.js
+        auth.validation.js
+      users/
+        user.model.js
+        user.controller.js
+        user.routes.js
+        user.service.js
+      addresses/
+        address.model.js
+        address.controller.js
+        address.routes.js
+      categories/
+        category.model.js
+        category.controller.js
+        category.routes.js
+      products/
+        product.model.js
+        product.controller.js
+        product.routes.js
+        product.validation.js
+      cart/
+        cart.model.js
+        cart.controller.js
+        cart.routes.js
+      wishlist/
+        wishlist.model.js
+        wishlist.controller.js
+        wishlist.routes.js
+      coupons/
+        coupon.model.js
+        coupon.controller.js
+        coupon.routes.js
+      orders/
+        order.model.js
+        order.controller.js
+        order.routes.js
+      payments/
+        payment.controller.js
+        payment.routes.js
+        payment.service.js
+      reviews/
+        review.model.js
+        review.controller.js
+        review.routes.js
+      contact/
+        contact.model.js
+        contact.controller.js
+        contact.routes.js
+      admin/
+        admin.routes.js
+        admin.controller.js
+    middleware/
+      auth.middleware.js
+      admin.middleware.js
+      error.middleware.js
+      validate.middleware.js
+      upload.middleware.js
+      rateLimit.middleware.js
+    utils/
+      ApiError.js
+      ApiResponse.js
+      asyncHandler.js
+      generateToken.js
+      sendEmail.js
+      pagination.js
+    seeds/
+      seedProducts.js
+      seedCategories.js
+    tests/
+      auth.test.js
+      products.test.js
+      orders.test.js
+  .env
+  .env.example
+  package.json
+\end{lstlisting}
+
+\section{Database Models}
+
+\subsection{User Model}
+
+\begin{itemize}
+  \item \texttt{name}: String, required.
+  \item \texttt{email}: String, required, unique, lowercase.
+  \item \texttt{password}: String, required, hashed.
+  \item \texttt{phone}: String.
+  \item \texttt{avatar}: String.
+  \item \texttt{role}: \texttt{user} or \texttt{admin}.
+  \item \texttt{isEmailVerified}: Boolean.
+  \item \texttt{createdAt}, \texttt{updatedAt}.
+\end{itemize}
+
+\subsection{Product Model}
+
+\begin{itemize}
+  \item \texttt{name}, \texttt{slug}, \texttt{description}.
+  \item \texttt{category}: ObjectId reference to Category.
+  \item \texttt{gender}: Women, Men, Unisex.
+  \item \texttt{price}, \texttt{discountPrice}.
+  \item \texttt{images}: Array of image URLs.
+  \item \texttt{sizes}: Array.
+  \item \texttt{colors}: Array.
+  \item \texttt{stock}: Number.
+  \item \texttt{ratingAverage}, \texttt{ratingCount}.
+  \item \texttt{isActive}: Boolean.
+\end{itemize}
+
+\subsection{Category Model}
+
+\begin{itemize}
+  \item \texttt{name}: String.
+  \item \texttt{slug}: String, unique.
+  \item \texttt{image}: String.
+  \item \texttt{description}: String.
+  \item \texttt{isActive}: Boolean.
+\end{itemize}
+
+\subsection{Cart Model}
+
+\begin{itemize}
+  \item \texttt{user}: ObjectId reference to User.
+  \item \texttt{items}: product, size, color, quantity, priceSnapshot.
+  \item \texttt{coupon}: optional coupon code.
+  \item \texttt{subtotal}, \texttt{shipping}, \texttt{discount}, \texttt{total}.
+\end{itemize}
+
+\subsection{Wishlist Model}
+
+\begin{itemize}
+  \item \texttt{user}: ObjectId reference to User.
+  \item \texttt{products}: Array of Product ObjectIds.
+\end{itemize}
+
+\subsection{Order Model}
+
+\begin{itemize}
+  \item \texttt{orderNumber}: Public order ID such as \texttt{ORD-98421}.
+  \item \texttt{user}: ObjectId reference to User.
+  \item \texttt{items}: product, name, image, size, color, quantity, price.
+  \item \texttt{shippingAddress}: embedded address snapshot.
+  \item \texttt{payment}: gateway, paymentId, orderId, status.
+  \item \texttt{pricing}: subtotal, shipping, discount, tax, total.
+  \item \texttt{status}: Pending, Processing, Shipped, Delivered, Cancelled.
+  \item \texttt{deliveredAt}, \texttt{cancelledAt}.
+\end{itemize}
+
+\section{REST API Blueprint}
+
+\subsection{Health}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/health & Check backend status. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Auth APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & /api/auth/register & Create a new user account. \\
+POST & /api/auth/login & Login and set auth cookie/token. \\
+POST & /api/auth/logout & Logout and clear cookie/token. \\
+GET & /api/auth/me & Get current logged-in user. \\
+POST & /api/auth/refresh & Refresh access token. \\
+POST & /api/auth/forgot-password & Send reset password email. \\
+POST & /api/auth/reset-password & Reset password using token. \\
+\bottomrule
+\end{longtable}
+
+\subsection{User and Profile APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/users/profile & Get user profile. \\
+PATCH & /api/users/profile & Update name, phone, avatar. \\
+PATCH & /api/users/password & Change password. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Address APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/addresses & Get logged-in user's addresses. \\
+POST & /api/addresses & Add new address. \\
+PATCH & /api/addresses/:id & Update address. \\
+PATCH & /api/addresses/:id/default & Set default address. \\
+DELETE & /api/addresses/:id & Delete address. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Category APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/categories & Public category list. \\
+GET & /api/categories/:slug & Category detail. \\
+POST & /api/admin/categories & Admin create category. \\
+PATCH & /api/admin/categories/:id & Admin update category. \\
+DELETE & /api/admin/categories/:id & Admin delete/deactivate category. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Product APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/products & Product list with search, filters, sort, pagination. \\
+GET & /api/products/:slug & Product detail. \\
+GET & /api/products/:id/related & Related products. \\
+POST & /api/admin/products & Admin create product. \\
+PATCH & /api/admin/products/:id & Admin update product. \\
+PATCH & /api/admin/products/:id/stock & Admin update stock. \\
+DELETE & /api/admin/products/:id & Admin delete/deactivate product. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Product Query Parameters}
+
+\begin{lstlisting}[style=code]
+GET /api/products?category=Dresses&gender=Women&size=M&color=Lavender&minPrice=1000&maxPrice=15000&search=silk&sort=price-low&page=1&limit=12
+\end{lstlisting}
+
+\section{Cart APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/cart & Get user's cart. \\
+POST & /api/cart/items & Add item to cart. \\
+PATCH & /api/cart/items/:cartItemId & Update item quantity. \\
+DELETE & /api/cart/items/:cartItemId & Remove item from cart. \\
+DELETE & /api/cart & Clear cart. \\
+POST & /api/cart/apply-coupon & Apply promo code. \\
+DELETE & /api/cart/coupon & Remove promo code. \\
+\bottomrule
+\end{longtable}
+
+\section{Wishlist APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/wishlist & Get wishlist. \\
+POST & /api/wishlist/:productId & Add product to wishlist. \\
+DELETE & /api/wishlist/:productId & Remove product from wishlist. \\
+DELETE & /api/wishlist & Clear wishlist. \\
+\bottomrule
+\end{longtable}
+
+\section{Coupon APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & /api/coupons/validate & Validate coupon for cart. \\
+GET & /api/admin/coupons & Admin list coupons. \\
+POST & /api/admin/coupons & Admin create coupon. \\
+PATCH & /api/admin/coupons/:id & Admin update coupon. \\
+DELETE & /api/admin/coupons/:id & Admin deactivate coupon. \\
+\bottomrule
+\end{longtable}
+
+\section{Checkout, Payment, and Order APIs}
+
+\subsection{Checkout and Payments}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & /api/checkout/summary & Calculate final cart summary. \\
+POST & /api/payments/create-order & Create Razorpay/Stripe payment order. \\
+POST & /api/payments/verify & Verify client payment result. \\
+POST & /api/payments/webhook & Gateway webhook for payment status. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Orders}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & /api/orders & Create order after payment success or COD selection. \\
+GET & /api/orders/my & User order history. \\
+GET & /api/orders/:id & User order detail. \\
+PATCH & /api/orders/:id/cancel & User cancel order if allowed. \\
+GET & /api/admin/orders & Admin list all orders. \\
+PATCH & /api/admin/orders/:id/status & Admin update status. \\
+\bottomrule
+\end{longtable}
+
+\section{Review APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/products/:productId/reviews & Get product reviews. \\
+POST & /api/products/:productId/reviews & Add review after purchase. \\
+PATCH & /api/reviews/:id & Update own review. \\
+DELETE & /api/reviews/:id & Delete own review or admin delete. \\
+\bottomrule
+\end{longtable}
+
+\section{Contact and Support APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & /api/contact & Submit contact form. \\
+GET & /api/admin/contact & Admin list inquiries. \\
+PATCH & /api/admin/contact/:id/status & Admin update inquiry status. \\
+\bottomrule
+\end{longtable}
+
+\section{Upload APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+POST & /api/uploads/image & Upload product/category/avatar image. \\
+DELETE & /api/uploads/image & Delete image from storage. \\
+\bottomrule
+\end{longtable}
+
+\section{Admin Dashboard APIs}
+
+\begin{longtable}{p{0.16\linewidth} p{0.34\linewidth} p{0.40\linewidth}}
+\toprule
+\textbf{Method} & \textbf{Endpoint} & \textbf{Purpose} \\
+\midrule
+GET & /api/admin/stats & Sales, users, orders, revenue summary. \\
+GET & /api/admin/users & Admin list users. \\
+PATCH & /api/admin/users/:id/role & Change user role. \\
+PATCH & /api/admin/users/:id/status & Block/unblock user. \\
+\bottomrule
+\end{longtable}
+
+\section{Environment Variables}
+
+\begin{lstlisting}[style=code]
+NODE_ENV=development
+PORT=5000
+CLIENT_URL=http://localhost:5173
+
+MONGO_URI=mongodb://127.0.0.1:27017/stylee_ecommerce
+
+JWT_ACCESS_SECRET=replace_with_strong_access_secret
+JWT_REFRESH_SECRET=replace_with_strong_refresh_secret
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=7d
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+EMAIL_FROM=Stylee <support@stylee.com>
+\end{lstlisting}
+
+\section{Standard API Response Format}
+
+\begin{lstlisting}[style=code]
+{
+  "success": true,
+  "message": "Product fetched successfully",
+  "data": {},
+  "meta": {
+    "page": 1,
+    "limit": 12,
+    "total": 100
+  }
+}
+\end{lstlisting}
+
+\section{Security Checklist}
+
+\begin{itemize}
+  \item Hash passwords using \texttt{bcryptjs}.
+  \item Store tokens in HTTP-only cookies where possible.
+  \item Use \texttt{helmet} for security headers.
+  \item Use \texttt{cors} with only your frontend domain.
+  \item Use rate limiting on login, register, contact, and forgot-password APIs.
+  \item Validate every request body using \texttt{zod}.
+  \item Never trust product price from frontend during checkout.
+  \item Recalculate subtotal, discount, shipping, and total on backend.
+  \item Reduce stock only after payment verification.
+  \item Verify payment webhooks using gateway signature.
+  \item Add admin middleware for every \texttt{/api/admin/*} route.
+\end{itemize}
+
+\section{Frontend Replacement Plan}
+
+\begin{longtable}{p{0.32\linewidth} p{0.58\linewidth}}
+\toprule
+\textbf{Current Frontend Source} & \textbf{Backend Replacement} \\
+\midrule
+\texttt{src/data/products.js} & \texttt{GET /api/products} and \texttt{GET /api/products/:slug}. \\
+\texttt{src/data/categories.js} & \texttt{GET /api/categories}. \\
+\texttt{AuthContext localStorage} & \texttt{/api/auth/*}, \texttt{/api/users/profile}, \texttt{/api/addresses}. \\
+\texttt{CartContext localStorage} & \texttt{/api/cart/*}. \\
+\texttt{WishlistContext localStorage} & \texttt{/api/wishlist/*}. \\
+\texttt{placeOrder mock function} & \texttt{/api/payments/*} and \texttt{/api/orders}. \\
+\texttt{Contact setTimeout mock} & \texttt{POST /api/contact}. \\
+\bottomrule
+\end{longtable}
+
+\section{Implementation Order}
+
+\begin{enumerate}
+  \item Create backend folder structure and common utilities.
+  \item Connect MongoDB using Mongoose.
+  \item Add global error handler, async handler, and validation middleware.
+  \item Build auth: register, login, logout, current user.
+  \item Build category and product APIs.
+  \item Seed current frontend products and categories into MongoDB.
+  \item Build cart and wishlist APIs.
+  \item Build address APIs and profile APIs.
+  \item Build coupon validation and backend pricing calculation.
+  \item Build payment creation, payment verification, and order creation.
+  \item Build admin product/order/category controls.
+  \item Connect frontend contexts to backend APIs.
+  \item Add tests for auth, products, cart, and orders.
+  \item Deploy backend and configure production environment variables.
+\end{enumerate}
+
+\section{MVP Route Count Summary}
+
+\begin{longtable}{p{0.40\linewidth} p{0.20\linewidth} p{0.30\linewidth}}
+\toprule
+\textbf{Module} & \textbf{MVP APIs} & \textbf{Priority} \\
+\midrule
+Health & 1 & High \\
+Auth & 5--7 & High \\
+User/Profile & 2--3 & High \\
+Addresses & 5 & High \\
+Categories & 2 & High \\
+Products & 3 & High \\
+Cart & 7 & High \\
+Wishlist & 4 & Medium \\
+Coupons & 1--2 & Medium \\
+Checkout/Payments & 3--4 & High \\
+Orders & 4 & High \\
+Contact & 1 & Medium \\
+Admin basic & 8--12 & Medium \\
+\bottomrule
+\end{longtable}
+
+\section{Final Recommendation}
+
+For your current frontend, build around \textbf{45 MVP APIs} first. Keep the folder structure ready for around \textbf{70 scalable APIs}. The most important backend rule is this: cart totals, coupon discount, stock validation, payment verification, and order creation must happen on the backend, not only in React.
+
+\end{document}
