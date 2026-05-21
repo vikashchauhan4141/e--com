@@ -10,6 +10,7 @@ import {
 } from 'react-icons/io5';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { ImageUploadDropzone } from '../../components/admin/ImageUploadDropzone';
 
 export const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -153,9 +154,33 @@ export const AdminProducts = () => {
       return;
     }
 
+    let finalImageUrl = formData.image;
+
+    // If image is a local File object, upload it to Cloudinary first!
+    if (formData.image instanceof File) {
+      const toastId = toast.loading('Uploading piece to Cloudinary...');
+      try {
+        const uploaderForm = new FormData();
+        uploaderForm.append('image', formData.image);
+        
+        const res = await api.post('/admin/upload', uploaderForm);
+        if (res && res.url) {
+          finalImageUrl = res.url;
+          toast.success('Piece uploaded to Cloudinary successfully', { id: toastId });
+        } else {
+          throw new Error('No upload URL returned from API');
+        }
+      } catch (err) {
+        console.error('Image upload failed during product curation:', err);
+        toast.error(err.message || 'Image upload failed. Curation aborted.', { id: toastId });
+        return;
+      }
+    }
+
     try {
       const payload = {
         ...formData,
+        image: finalImageUrl,
         price: Number(formData.price),
         discountPrice: formData.discountPrice !== '' ? Number(formData.discountPrice) : null,
         stock: Number(formData.stock)
@@ -547,19 +572,11 @@ export const AdminProducts = () => {
               </div>
 
               {/* Image URL URL details */}
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold tracking-widest text-secondary uppercase block">
-                  Product Image URL
-                </label>
-                <input 
-                  type="text"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleInputChange}
-                  className="w-full text-xs bg-surface-container px-3.5 py-2 rounded border border-outline focus:border-ink focus:outline-none"
-                  placeholder="https://images.unsplash.com/..."
-                />
-              </div>
+              <ImageUploadDropzone
+                value={formData.image}
+                onChange={(url) => setFormData(prev => ({ ...prev, image: url }))}
+                label="Product Showcase Image"
+              />
 
               {/* Description */}
               <div className="space-y-1">

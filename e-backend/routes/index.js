@@ -9,6 +9,7 @@ const wishlistRoutes = require('./wishlist.routes');
 const checkoutRoutes = require('./checkout.routes');
 const orderRoutes = require('./order.routes');
 const adminRoutes = require('./admin.routes');
+const uploadRoutes = require('./upload.routes');
 const ApiResponse = require('../utils/ApiResponse');
 
 const router = express.Router();
@@ -35,6 +36,7 @@ router.use('/cart', cartRoutes);
 router.use('/wishlist', wishlistRoutes);
 router.use('/checkout', checkoutRoutes);
 router.use('/orders', orderRoutes);
+router.use('/admin/upload', uploadRoutes);
 router.use('/admin', adminRoutes);
 
 module.exports = router;

@@ -22,7 +22,7 @@ app.use(
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 100,
+    limit: env.nodeEnv === 'development' ? 10000 : 100,
     standardHeaders: true,
     legacyHeaders: false,
     message: {

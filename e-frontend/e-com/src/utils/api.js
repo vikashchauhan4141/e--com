@@ -4,9 +4,15 @@ export const apiRequest = async (endpoint, options = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   
   const headers = {
-    'Content-Type': 'application/json',
     ...options.headers,
   };
+  
+  if (options.body instanceof FormData) {
+    // Do not set Content-Type, browser will set it with the correct boundary
+    delete headers['Content-Type'];
+  } else {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
   
   const config = {
     ...options,
@@ -14,8 +20,12 @@ export const apiRequest = async (endpoint, options = {}) => {
     credentials: 'include', // critical to pass express JWT session cookies back and forth
   };
   
-  if (options.body && typeof options.body === 'object') {
-    config.body = JSON.stringify(options.body);
+  if (options.body) {
+    if (options.body instanceof FormData) {
+      config.body = options.body;
+    } else if (typeof options.body === 'object') {
+      config.body = JSON.stringify(options.body);
+    }
   }
   
   try {

@@ -10,6 +10,7 @@ import {
 } from 'react-icons/io5';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { ImageUploadDropzone } from '../../components/admin/ImageUploadDropzone';
 
 export const AdminCategories = () => {
   const [categories, setCategories] = useState([]);
@@ -88,14 +89,42 @@ export const AdminCategories = () => {
       return;
     }
 
+    let finalImageUrl = formData.image;
+
+    // If image is a local File object, upload it to Cloudinary first!
+    if (formData.image instanceof File) {
+      const toastId = toast.loading('Uploading tag image to Cloudinary...');
+      try {
+        const uploaderForm = new FormData();
+        uploaderForm.append('image', formData.image);
+        
+        const res = await api.post('/admin/upload', uploaderForm);
+        if (res && res.url) {
+          finalImageUrl = res.url;
+          toast.success('Tag image uploaded successfully', { id: toastId });
+        } else {
+          throw new Error('No upload URL returned from API');
+        }
+      } catch (err) {
+        console.error('Image upload failed during category tagging:', err);
+        toast.error(err.message || 'Image upload failed. Tagging aborted.', { id: toastId });
+        return;
+      }
+    }
+
     try {
+      const payload = {
+        ...formData,
+        image: finalImageUrl
+      };
+
       if (editingCategory) {
         // Edit category
-        await api.put(`/admin/categories/${editingCategory._id}`, formData);
+        await api.put(`/admin/categories/${editingCategory._id}`, payload);
         toast.success('Category updated successfully');
       } else {
         // Create category
-        await api.post('/admin/categories', formData);
+        await api.post('/admin/categories', payload);
         toast.success('Category added successfully');
       }
       setModalOpen(false);
@@ -323,20 +352,11 @@ export const AdminCategories = () => {
                 />
               </div>
 
-              {/* Image URL */}
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold tracking-widest text-secondary uppercase block">
-                  Image Thumbnail URL
-                </label>
-                <input 
-                  type="text"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleInputChange}
-                  className="w-full text-xs bg-surface-container px-3.5 py-2 rounded border border-outline focus:border-ink focus:outline-none"
-                  placeholder="https://images.unsplash.com/..."
-                />
-              </div>
+              <ImageUploadDropzone
+                value={formData.image}
+                onChange={(url) => setFormData(prev => ({ ...prev, image: url }))}
+                label="Category Showcase Image"
+              />
 
               {/* Description */}
               <div className="space-y-1">
