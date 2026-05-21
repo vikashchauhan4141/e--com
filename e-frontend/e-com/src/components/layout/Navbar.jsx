@@ -120,6 +120,19 @@ export const Navbar = () => {
                       <p className="text-xs font-semibold text-ink truncate">{user.name}</p>
                     </div>
                     
+                    {user?.role === 'admin' && (
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            to="/admin"
+                            className={`block px-4 py-2 text-xs font-sans font-semibold tracking-wide text-primary ${active ? 'bg-primary/10 text-primary' : ''}`}
+                          >
+                            Admin Workspace
+                          </Link>
+                        )}
+                      </Menu.Item>
+                    )}
+
                     <Menu.Item>
                       {({ active }) => (
                         <Link
@@ -212,6 +225,15 @@ export const Navbar = () => {
               
               {isAuthenticated ? (
                 <>
+                  {user?.role === 'admin' && (
+                    <Link 
+                      to="/admin"
+                      className="font-sans font-bold text-xs tracking-[0.15em] uppercase text-primary py-2"
+                    >
+                      Admin Workspace
+                    </Link>
+                  )}
+
                   <Link 
                     to="/profile"
                     className="font-sans font-semibold text-xs tracking-[0.15em] uppercase text-secondary py-2"

@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 
 export const Register = () => {
-  const { register, isAuthenticated } = useContext(AuthContext);
+  const { register, isAuthenticated, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -17,10 +17,14 @@ export const Register = () => {
 
   // Already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/profile');
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,10 +39,7 @@ export const Register = () => {
 
     try {
       setError('');
-      const success = await register(name, email, password);
-      if (success) {
-        navigate('/profile');
-      }
+      await register(name, email, password);
     } catch (err) {
       setError(err.message || "Registration failed. Try a different email.");
     }

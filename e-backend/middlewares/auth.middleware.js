@@ -27,6 +27,15 @@ const protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    throw new ApiError(403, 'Forbidden: Admin access required');
+  }
+};
+
 module.exports = {
   protect,
+  isAdmin,
 };

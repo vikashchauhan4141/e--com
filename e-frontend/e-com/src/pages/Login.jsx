@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 
 export const Login = () => {
-  const { login, isAuthenticated } = useContext(AuthContext);
+  const { login, isAuthenticated, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -15,10 +15,14 @@ export const Login = () => {
 
   // Already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/profile');
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,10 +33,7 @@ export const Login = () => {
     
     try {
       setError('');
-      const success = await login(email, password);
-      if (success) {
-        navigate('/profile');
-      }
+      await login(email, password);
     } catch (err) {
       setError(err.message || "Invalid email or password");
     }
