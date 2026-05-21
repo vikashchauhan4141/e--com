@@ -29,13 +29,21 @@ export const Checkout = () => {
   const [step, setStep] = useState('shipping');
 
   // Step 1: Shipping Address State
-  const [selectedAddrId, setSelectedAddrId] = useState(addresses[0]?.id || 'new');
+  const [selectedAddrId, setSelectedAddrId] = useState('new');
   const [newFullName, setNewFullName] = useState(user?.name || '');
   const [newStreet, setNewStreet] = useState('');
   const [newCity, setNewCity] = useState('');
   const [newState, setNewState] = useState('');
   const [newZip, setNewZip] = useState('');
   const [newPhone, setNewPhone] = useState(user?.phone || '');
+
+  // Automatically select the default address or first address on load
+  useEffect(() => {
+    if (addresses && addresses.length > 0) {
+      const defaultAddr = addresses.find(a => a.isDefault);
+      setSelectedAddrId(defaultAddr?._id || addresses[0]._id);
+    }
+  }, [addresses]);
 
   // Step 2: Payment Details State
   const [cardNumber, setCardNumber] = useState('');
@@ -48,7 +56,7 @@ export const Checkout = () => {
   // Derive active shipping address
   const activeAddress = (() => {
     if (selectedAddrId !== 'new') {
-      return addresses.find(a => a.id === selectedAddrId);
+      return addresses.find(a => a._id === selectedAddrId);
     }
     return {
       fullName: newFullName,
@@ -56,7 +64,7 @@ export const Checkout = () => {
       city: newCity,
       state: newState,
       zipCode: newZip,
-      country: "United States",
+      country: "India",
       phone: newPhone
     };
   })();
@@ -81,22 +89,37 @@ export const Checkout = () => {
     setStep('review');
   };
 
-  const handlePlaceOrder = () => {
-    // 1. Save order to Auth history
-    placeOrder(
-      cartItems.map(item => ({ name: item.name, price: item.discountPrice || item.price, qty: item.quantity })),
-      total,
-      activeAddress
-    );
-    
-    // 2. Success alert
-    toast.success("Order Placed Successfully! Thank you.");
-    
-    // 3. Clear shopping bag
-    clearCart();
-    
-    // 4. Redirect
-    navigate('/profile');
+  const handlePlaceOrder = async () => {
+    try {
+      const payload = {
+        paymentMethod: 'ONLINE',
+      };
+      
+      if (selectedAddrId !== 'new') {
+        payload.addressId = selectedAddrId;
+      } else {
+        payload.shippingAddress = {
+          fullName: newFullName,
+          street: newStreet,
+          city: newCity,
+          state: newState,
+          zipCode: newZip,
+          country: "India",
+          phone: newPhone
+        };
+      }
+
+      await placeOrder(payload);
+      
+      toast.success("Order Placed Successfully! Thank you.");
+      
+      // Clear shopping bag locally and refresh cart state
+      await clearCart();
+      
+      navigate('/profile');
+    } catch (err) {
+      console.error("Order placement failed:", err.message);
+    }
   };
 
   const stepsList = [
@@ -156,10 +179,10 @@ export const Checkout = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {addresses.map((addr) => (
                           <div 
-                            key={addr.id}
-                            onClick={() => setSelectedAddrId(addr.id)}
+                            key={addr._id}
+                            onClick={() => setSelectedAddrId(addr._id)}
                             className={`p-4 border rounded cursor-pointer transition-all ${
-                              selectedAddrId === addr.id
+                              selectedAddrId === addr._id
                                 ? 'border-primary bg-primary/5 shadow-sm'
                                 : 'border-outline-variant bg-surface-container-lowest hover:border-outline'
                             }`}

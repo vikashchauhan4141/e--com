@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { IoHeart, IoHeartOutline, IoBagOutline, IoReturnUpBackOutline } from 'react-icons/io5';
-import { products } from '../data/products';
+import { api } from '../utils/api';
 import { CartContext } from '../context/CartContext';
 import { WishlistContext } from '../context/WishlistContext';
 import { StarRating } from '../components/shared/StarRating';
@@ -16,26 +16,76 @@ export const ProductDetail = () => {
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
 
-  // Retrieve active product
-  const product = useMemo(() => {
-    return products.find(p => p.id === Number(id));
-  }, [id]);
+  // Dynamic API States
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // States
+  // Selector States
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [activeTab, setActiveTab] = useState('description');
   const [quantity, setQuantity] = useState(1);
 
-  // Scroll to top on id change
+  // Fetch product detail and related coordinates from backend
   useEffect(() => {
+    const fetchProductDetails = async () => {
+      setIsLoading(true);
+      try {
+        const data = await api.get(`/products/${id}`);
+        if (data && data.product) {
+          const dbProduct = data.product;
+          
+          // Map DB key to frontend legacy schema
+          const mappedProduct = {
+            ...dbProduct,
+            id: dbProduct.legacyId || dbProduct._id,
+            category: dbProduct.categoryName || (dbProduct.category && typeof dbProduct.category === 'object' ? dbProduct.category.name : dbProduct.category)
+          };
+          setProduct(mappedProduct);
+
+          // Select default size and color
+          setSelectedSize(mappedProduct.sizes[0] || '');
+          setSelectedColor(mappedProduct.colors[0] || '');
+          setQuantity(1);
+
+          // Fetch related products of the same category
+          const catName = mappedProduct.category;
+          if (catName) {
+            const relData = await api.get(`/products?category=${encodeURIComponent(catName)}&limit=5`);
+            if (relData && relData.products) {
+              const mappedRel = relData.products
+                .map(p => ({
+                  ...p,
+                  id: p.legacyId || p._id,
+                  category: p.categoryName || (p.category && typeof p.category === 'object' ? p.category.name : p.category)
+                }))
+                .filter(p => p.id !== mappedProduct.id)
+                .slice(0, 4);
+              setRelatedProducts(mappedRel);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch product details:', err.message);
+        setProduct(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProductDetails();
     window.scrollTo(0, 0);
-    if (product) {
-      setSelectedSize(product.sizes[0] || '');
-      setSelectedColor(product.colors[0] || '');
-      setQuantity(1);
-    }
-  }, [id, product]);
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-container mx-auto px-6 py-20 text-center flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p className="font-heading font-semibold text-[10px] tracking-widest text-primary uppercase">Loading Atelier Piece...</p>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -51,11 +101,6 @@ export const ProductDetail = () => {
 
   const liked = isInWishlist(product.id);
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
-
-  // Filter related coordinates
-  const relatedProducts = products
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
 
   const handleAddToCart = () => {
     const success = addToCart(product, quantity, selectedSize, selectedColor);

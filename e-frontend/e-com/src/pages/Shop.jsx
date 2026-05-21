@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { IoFilterOutline, IoClose, IoSearchOutline } from 'react-icons/io5';
-import { products } from '../data/products';
-import { categories } from '../data/categories';
+import { api } from '../utils/api';
 import { ProductCard } from '../components/shared/ProductCard';
 import { ProductCardSkeleton } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
@@ -14,7 +13,12 @@ const GENDERS = ["Women", "Men", "Unisex"];
 export const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // States
+  // Dynamic API States
+  const [productsList, setProductsList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
@@ -22,7 +26,6 @@ export const Shop = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [priceRange, setPriceRange] = useState(15000);
   const [sortBy, setSortBy] = useState('default');
-  const [isLoading, setIsLoading] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Sync category from URL search query (e.g. ?category=Dresses)
@@ -36,14 +39,57 @@ export const Shop = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Simulate premium loading state on filter change
+  // Load categories once on mount
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [categoryParam, selectedGender, selectedSize, selectedColor, priceRange, sortBy, debouncedSearch]);
+    const fetchCategories = async () => {
+      try {
+        const data = await api.get('/categories');
+        if (data && data.categories) {
+          setCategoriesList(data.categories);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err.message);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch products dynamically when filters or sorting change
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        if (categoryParam) queryParams.append('category', categoryParam);
+        if (selectedGender) queryParams.append('gender', selectedGender);
+        if (selectedSize) queryParams.append('size', selectedSize);
+        if (selectedColor) queryParams.append('color', selectedColor);
+        if (priceRange) queryParams.append('maxPrice', priceRange.toString());
+        if (debouncedSearch) queryParams.append('search', debouncedSearch);
+        if (sortBy && sortBy !== 'default') queryParams.append('sort', sortBy);
+        
+        // Fetch higher limits to get all products in catalog
+        queryParams.append('limit', '100');
+
+        const data = await api.get(`/products?${queryParams.toString()}`);
+        if (data && data.products) {
+          // Map DB keys to frontend legacy schema
+          const mapped = data.products.map(p => ({
+            ...p,
+            id: p.legacyId || p._id,
+            category: p.categoryName || (p.category && typeof p.category === 'object' ? p.category.name : p.category)
+          }));
+          setProductsList(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch products:', err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [categoryParam, selectedGender, selectedSize, selectedColor, priceRange, debouncedSearch, sortBy]);
 
   const activeCategory = categoryParam;
 
@@ -66,56 +112,6 @@ export const Shop = () => {
     setSortBy('default');
   };
 
-  // Advanced memoized filtering
-  const filteredProducts = useMemo(() => {
-    let result = [...products];
-
-    // Category
-    if (activeCategory) {
-      result = result.filter(p => p.category.toLowerCase() === activeCategory.toLowerCase());
-    }
-
-    // Gender
-    if (selectedGender) {
-      result = result.filter(p => p.gender.toLowerCase() === selectedGender.toLowerCase());
-    }
-
-    // Size
-    if (selectedSize) {
-      result = result.filter(p => p.sizes.includes(selectedSize));
-    }
-
-    // Color
-    if (selectedColor) {
-      result = result.filter(p => p.colors.includes(selectedColor));
-    }
-
-    // Price
-    result = result.filter(p => {
-      const activePrice = p.discountPrice || p.price;
-      return activePrice <= priceRange;
-    });
-
-    // Search Query
-    if (debouncedSearch) {
-      result = result.filter(p => 
-        p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        p.description.toLowerCase().includes(debouncedSearch.toLowerCase())
-      );
-    }
-
-    // Sorting
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-    } else if (sortBy === 'rating') {
-      result.sort((a, b) => b.rating - a.rating);
-    }
-
-    return result;
-  }, [activeCategory, selectedGender, selectedSize, selectedColor, priceRange, debouncedSearch, sortBy]);
-
   const FilterSidebarContent = () => (
     <div className="flex flex-col gap-8 text-left">
       
@@ -123,9 +119,9 @@ export const Shop = () => {
       <div className="flex flex-col gap-3">
         <h3 className="font-heading font-semibold text-[10px] tracking-widest uppercase text-ink">Categories</h3>
         <div className="flex flex-col gap-2 font-sans text-xs">
-          {categories.map((cat) => (
+          {categoriesList.map((cat) => (
             <button
-              key={cat.id}
+              key={cat._id || cat.legacyId || cat.id}
               onClick={() => handleSelectCategory(cat.name)}
               className={`text-left transition-colors py-1 ${
                 activeCategory.toLowerCase() === cat.name.toLowerCase()
@@ -299,10 +295,10 @@ export const Shop = () => {
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
+          ) : productsList.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 lg:gap-8">
-              {filteredProducts.map((prod) => (
-                <ProductCard key={prod.id} product={prod} />
+              {productsList.map((prod) => (
+                <ProductCard key={prod.id || prod._id} product={prod} />
               ))}
             </div>
           ) : (

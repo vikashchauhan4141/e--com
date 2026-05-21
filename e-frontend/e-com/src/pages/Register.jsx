@@ -22,7 +22,7 @@ export const Register = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
       setError("Please fill in all required fields");
@@ -33,9 +33,14 @@ export const Register = () => {
       return;
     }
 
-    const success = register(name, email, password);
-    if (success) {
-      navigate('/profile');
+    try {
+      setError('');
+      const success = await register(name, email, password);
+      if (success) {
+        navigate('/profile');
+      }
+    } catch (err) {
+      setError(err.message || "Registration failed. Try a different email.");
     }
   };
 

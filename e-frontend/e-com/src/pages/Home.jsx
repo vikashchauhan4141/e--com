@@ -1,9 +1,8 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoArrowForwardOutline, IoShieldCheckmarkOutline, IoGitMergeOutline, IoSparklesOutline } from 'react-icons/io5';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
+import { api } from '../utils/api';
 import { CategoryCard } from '../components/shared/CategoryCard';
 import { ProductCard } from '../components/shared/ProductCard';
 import { Button } from '../components/ui/Button';
@@ -24,18 +23,53 @@ const HERO_SLIDES = [
 ];
 
 export const Home = () => {
-  const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  React.useEffect(() => {
+  // Dynamic API States
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [trendingProducts, setTrendingProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % HERO_SLIDES.length);
     }, 6000);
     return () => clearInterval(timer);
   }, []);
 
-  const trendingProducts = products
-    .filter(p => p.rating >= 4.8)
-    .slice(0, 4);
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const [catData, prodData] = await Promise.all([
+          api.get('/categories'),
+          api.get('/products?limit=8&sort=rating')
+        ]);
+
+        if (catData && catData.categories) {
+          const mappedCats = catData.categories.map(c => ({
+            ...c,
+            id: c.legacyId || c._id
+          }));
+          setCategoriesList(mappedCats);
+        }
+
+        if (prodData && prodData.products) {
+          const mappedProds = prodData.products.map(p => ({
+            ...p,
+            id: p.legacyId || p._id,
+            category: p.categoryName || (p.category && typeof p.category === 'object' ? p.category.name : p.category)
+          }));
+          setTrendingProducts(mappedProds.slice(0, 4));
+        }
+      } catch (err) {
+        console.error('Failed to load home page dynamic data:', err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
 
   return (
     <div className="w-full overflow-hidden">
@@ -146,8 +180,8 @@ export const Home = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.slice(0, 4).map((cat) => (
-            <CategoryCard key={cat.id} category={cat} />
+          {categoriesList.slice(0, 4).map((cat) => (
+            <CategoryCard key={cat.id || cat._id} category={cat} />
           ))}
         </div>
       </section>

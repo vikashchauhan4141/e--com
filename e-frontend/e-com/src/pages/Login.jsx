@@ -20,17 +20,21 @@ export const Login = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Please enter email and password");
       return;
     }
     
-    // Simple verification
-    const success = login(email, password);
-    if (success) {
-      navigate('/profile');
+    try {
+      setError('');
+      const success = await login(email, password);
+      if (success) {
+        navigate('/profile');
+      }
+    } catch (err) {
+      setError(err.message || "Invalid email or password");
     }
   };
 
