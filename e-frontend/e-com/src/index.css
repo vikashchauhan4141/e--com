@@ -30,7 +30,7 @@
   @apply bg-outline-variant/60 rounded-full hover:bg-primary/40 transition-colors;
 }
 
-/* Swiper custom overrides to match Lavender Luxe */
+/* Swiper custom overrides to match Stylee */
 .swiper-pagination-bullet-active {
   background: theme('colors.primary.DEFAULT') !important;
 }

@@ -97,7 +97,7 @@ export const CartProvider = ({ children }) => {
 
   const applyPromoCode = (code) => {
     const uppercaseCode = code.toUpperCase().trim();
-    if (uppercaseCode === 'LAVENDER10' || uppercaseCode === 'AURA10') {
+    if (uppercaseCode === 'STYLEE10' || uppercaseCode === 'LAVENDER10' || uppercaseCode === 'AURA10') {
       setPromoCode(uppercaseCode);
       setDiscountPercent(10);
       toast.success("Promo code applied: 10% Off!");

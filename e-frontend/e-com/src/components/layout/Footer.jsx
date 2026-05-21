@@ -10,7 +10,7 @@ export const Footer = () => {
         {/* Brand column */}
         <div className="flex flex-col gap-4">
           <Link to="/" className="font-heading font-light text-base tracking-[0.2em] uppercase text-white">
-            Lavender <span className="font-semibold text-primary-accent">Luxe</span>
+            Stylee <span className="font-semibold text-primary-accent">Atelier</span>
           </Link>
           <p className="text-xs text-secondary-container leading-relaxed font-sans max-w-xs mt-2">
             A digital atelier rooted in quiet luxury, modern minimalism, and breathing white space. Curated coordinates for a discerning audience.
@@ -77,7 +77,13 @@ export const Footer = () => {
               <span className="hover:text-white transition-colors cursor-pointer">Exchange & Returns</span>
             </li>
             <li>
-              <span className="hover:text-white transition-colors cursor-pointer">Contact Atelier</span>
+              <Link to="/contact" className="hover:text-white transition-colors">Contact Atelier</Link>
+            </li>
+            <li className="border-t border-surface-on-variant/10 pt-3 mt-2 flex flex-col gap-1.5 text-xs text-secondary-container">
+              <span className="text-[10px] text-white uppercase tracking-wider font-semibold">Atelier Details</span>
+              <span>Greater Noida, UP, India</span>
+              <a href="tel:9910484141" className="hover:text-white transition-colors">+91 9910484141</a>
+              <a href="mailto:vikashchauhan414141@gmail.com" className="hover:text-white transition-colors break-all">vikashchauhan414141@gmail.com</a>
             </li>
             <li className="text-[10px] text-primary-accent font-semibold tracking-wider uppercase mt-2">
               Free Shipping over ₹5,000
@@ -88,7 +94,7 @@ export const Footer = () => {
       </div>
 
       <div className="max-w-container mx-auto px-6 lg:px-16 border-t border-surface-on-variant/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-sans tracking-wide text-secondary-container">
-        <p>© 2026 Lavender Luxe E-commerce Store. All rights reserved.</p>
+        <p>© 2026 Stylee E-commerce Store. All rights reserved.</p>
         <div className="flex gap-6">
           <span className="cursor-pointer hover:text-white">Privacy Policy</span>
           <span className="cursor-pointer hover:text-white">Terms of Service</span>

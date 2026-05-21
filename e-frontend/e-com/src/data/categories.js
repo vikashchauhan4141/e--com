@@ -32,6 +32,6 @@ export const categories = [
     name: "Accessories",
     slug: "accessories",
     image: "https://images.unsplash.com/photo-1509319117193-57bab727e09d?auto=format&fit=crop&w=600&q=80",
-    description: "Curated accents to elevate and complete your Lavender statement."
+    description: "Curated accents to elevate and complete your Stylee statement."
   }
 ];

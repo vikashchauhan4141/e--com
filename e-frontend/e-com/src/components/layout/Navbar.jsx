@@ -35,6 +35,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/shop' },
+    { name: 'Contact', path: '/contact' },
     { name: 'Wishlist', path: '/wishlist' },
   ];
 
@@ -55,7 +56,7 @@ export const Navbar = () => {
 
         {/* Brand Logo - Montserrat editorial */}
         <Link to="/" className="font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
-          Lavender <span className="font-semibold text-primary">Luxe</span>
+          Stylee <span className="font-semibold text-primary">Atelier</span>
         </Link>
 
         {/* Nav Links - Inter Caps 10% spacing */}
@@ -183,7 +184,7 @@ export const Navbar = () => {
           <div className="relative w-full max-w-xs bg-surface-container-lowest h-full shadow-xl flex flex-col p-6 z-10 transition-transform duration-300">
             <div className="flex items-center justify-between border-b border-outline-variant pb-6 mb-8">
               <Link to="/" className="font-heading font-light text-sm tracking-[0.2em] uppercase text-ink">
-                Lavender <span className="font-semibold text-primary">Luxe</span>
+                Stylee <span className="font-semibold text-primary">Atelier</span>
               </Link>
               <button 
                 onClick={() => setMobileMenuOpen(false)}

@@ -131,7 +131,7 @@ export const Home = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-primary-accent" />
               <span>100% Belgian Flax Linen & Mulberry Silk</span>
               <span className="w-1.5 h-1.5 rounded-full bg-primary-accent" />
-              <span>Use Code LAVENDER10 for 10% Off</span>
+              <span>Use Code STYLEE10 for 10% Off</span>
               <span className="w-1.5 h-1.5 rounded-full bg-primary-accent" />
               <span>Quiet Luxury Crafted in Limited Runs</span>
               <span className="w-1.5 h-1.5 rounded-full bg-primary-accent" />
