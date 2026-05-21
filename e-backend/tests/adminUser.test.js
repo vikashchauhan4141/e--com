@@ -17,8 +17,8 @@ describe('Admin User Curation Integration Tests', () => {
 
     // Create an Admin user
     adminUser = await User.create({
-      name: 'Admin Curator',
-      email: 'admin@stylee.com',
+      name: 'vikash admin',
+      email: 'vikashchauhan2921@gmail.com',
       password: 'password123',
       role: 'admin',
       isActive: true

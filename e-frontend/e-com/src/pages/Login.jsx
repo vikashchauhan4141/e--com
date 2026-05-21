@@ -74,7 +74,7 @@ export const Login = () => {
           />
 
           <div className="flex justify-end -mt-2">
-            <Link to="/forgot-password" className="text-secondary hover:text-primary text-[10px] uppercase tracking-wider transition-colors duration-150">
+            <Link to="/forgot-password" className="text-primary hover:text-primary-accent text-xs font-semibold uppercase tracking-wider transition-colors duration-150">
               Forgot password?
             </Link>
           </div>

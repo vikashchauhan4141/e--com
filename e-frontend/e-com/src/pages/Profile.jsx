@@ -390,7 +390,7 @@ export const Profile = () => {
                     <button
                       type="button"
                       onClick={handleInstantForgot}
-                      className="text-secondary hover:text-primary text-[9px] uppercase tracking-wider transition-colors duration-150"
+                      className="text-primary hover:text-primary-accent text-xs font-semibold uppercase tracking-wider transition-colors duration-150"
                     >
                       Forgot current password?
                     </button>
