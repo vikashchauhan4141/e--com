@@ -7,6 +7,7 @@ const {
   deleteProduct,
   getOrders,
   updateOrderStatus,
+  deleteOrder,
   getUsers,
   updateUserRole,
   getCategoriesAdmin,
@@ -42,6 +43,7 @@ router.delete('/categories/:id', deleteCategoryAdmin);
 router.get('/orders', getOrders);
 router.post('/orders', createAdminOrder);
 router.patch('/orders/:id/status', updateOrderStatus);
+router.delete('/orders/:id', deleteOrder);
 
 // Users management
 router.get('/users', getUsers);

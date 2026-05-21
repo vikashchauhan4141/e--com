@@ -118,6 +118,23 @@ export const AdminOrders = () => {
     }
   };
 
+  // Permanently delete an order from database ledgers
+  const handleDeleteOrder = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to permanently delete this order? This action cannot be undone.');
+    if (!confirmDelete) return;
+
+    try {
+      const loadingToast = toast.loading('Deleting order ledgers...');
+      await api.delete(`/admin/orders/${id}`);
+      toast.dismiss(loadingToast);
+      toast.success('Order deleted successfully');
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete order');
+      console.error(err);
+    }
+  };
+
   // Administrative direct order placement flows
   const handleCreateOrderOpen = async () => {
     try {
@@ -473,6 +490,15 @@ export const AdminOrders = () => {
                       className="p-1 rounded hover:bg-surface-container text-secondary hover:text-ink mt-4"
                     >
                       {isExpanded ? <IoChevronUp size={16} /> : <IoChevronDown size={16} />}
+                    </button>
+
+                    {/* Permanently delete order */}
+                    <button 
+                      onClick={() => handleDeleteOrder(order._id)}
+                      className="p-1.5 rounded hover:bg-error/10 text-secondary hover:text-error mt-4 transition-colors duration-150"
+                      title="Delete Order"
+                    >
+                      <IoTrashOutline size={15} />
                     </button>
 
                   </div>

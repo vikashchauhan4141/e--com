@@ -298,6 +298,22 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { order }, 'Order status updated successfully'));
 });
 
+// @desc    Delete an order
+// @route   DELETE /api/admin/orders/:id
+// @access  Private/Admin
+const deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  await Order.findByIdAndDelete(req.params.id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, 'Order deleted successfully'));
+});
+
 // @desc    Get all users
 // @route   GET /api/admin/users
 // @access  Private/Admin
@@ -554,6 +570,7 @@ module.exports = {
   deleteProduct,
   getOrders,
   updateOrderStatus,
+  deleteOrder,
   getUsers,
   updateUserRole,
   getCategoriesAdmin,
