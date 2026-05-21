@@ -1,5 +1,13 @@
 const express = require('express');
 const authRoutes = require('./auth.routes');
+const userRoutes = require('./user.routes');
+const addressRoutes = require('./address.routes');
+const categoryRoutes = require('./category.routes');
+const productRoutes = require('./product.routes');
+const cartRoutes = require('./cart.routes');
+const wishlistRoutes = require('./wishlist.routes');
+const checkoutRoutes = require('./checkout.routes');
+const orderRoutes = require('./order.routes');
 const ApiResponse = require('../utils/ApiResponse');
 
 const router = express.Router();
@@ -18,5 +26,13 @@ router.get('/health', (req, res) => {
 });
 
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/addresses', addressRoutes);
+router.use('/categories', categoryRoutes);
+router.use('/products', productRoutes);
+router.use('/cart', cartRoutes);
+router.use('/wishlist', wishlistRoutes);
+router.use('/checkout', checkoutRoutes);
+router.use('/orders', orderRoutes);
 
 module.exports = router;
