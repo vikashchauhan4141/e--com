@@ -6,6 +6,8 @@ import { formatPrice } from '../utils/formatPrice';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
+import { api } from '../utils/api';
+import toast from 'react-hot-toast';
 
 export const Profile = () => {
   const { user, isAuthenticated, addresses, orders, updateProfile, addAddress, deleteAddress } = useContext(AuthContext);
@@ -23,6 +25,12 @@ export const Profile = () => {
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profilePhone, setProfilePhone] = useState(user?.phone || '');
 
+  // Password Update Form State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
   // Address Form State
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [addrType, setAddrType] = useState('Home');
@@ -38,7 +46,35 @@ export const Profile = () => {
   const handleUpdateProfile = (e) => {
     e.preventDefault();
     updateProfile({ name: profileName, phone: profilePhone });
-    alert("Profile details updated successfully!");
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('All password fields are required');
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      await api.patch('/users/password', { currentPassword, newPassword });
+      toast.success('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      toast.error(err.message || 'Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   const handleAddAddress = (e) => {
@@ -289,39 +325,80 @@ export const Profile = () => {
 
           {/* Tab 3: Account Info */}
           {activeTab === 'account' && (
-            <div className="flex flex-col gap-6 max-w-md">
-              <h2 className="font-heading font-semibold text-sm tracking-widest uppercase text-ink border-b border-outline-variant/60 pb-3 mb-2">
-                Atelier Client Details
-              </h2>
-              
-              <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
-                <Input
-                  label="Registered Email"
-                  value={user.email}
-                  disabled
-                  className="bg-surface-container opacity-60 text-secondary"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="flex flex-col gap-6 w-full">
+                <h2 className="font-heading font-semibold text-sm tracking-widest uppercase text-ink border-b border-outline-variant/60 pb-3 mb-2">
+                  Atelier Client Details
+                </h2>
                 
-                <Input
-                  label="Display Name"
-                  placeholder="Vikas Chauhan"
-                  value={profileName}
-                  onChange={(e) => setProfileName(e.target.value)}
-                  required
-                />
-                
-                <Input
-                  label="Contact Phone"
-                  placeholder="+1 234 567 890"
-                  value={profilePhone}
-                  onChange={(e) => setProfilePhone(e.target.value)}
-                  required
-                />
+                <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
+                  <Input
+                    label="Registered Email"
+                    value={user.email}
+                    disabled
+                    className="bg-surface-container opacity-60 text-secondary"
+                  />
+                  
+                  <Input
+                    label="Display Name"
+                    placeholder="Vikas Chauhan"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    required
+                  />
+                  
+                  <Input
+                    label="Contact Phone"
+                    placeholder="+1 234 567 890"
+                    value={profilePhone}
+                    onChange={(e) => setProfilePhone(e.target.value)}
+                    required
+                  />
 
-                <Button type="submit" variant="primary" className="w-fit py-3 px-8 mt-2">
-                  Update Settings
-                </Button>
-              </form>
+                  <Button type="submit" variant="primary" className="w-fit py-3 px-8 mt-2">
+                    Update Settings
+                  </Button>
+                </form>
+              </div>
+
+              <div className="flex flex-col gap-6 w-full">
+                <h2 className="font-heading font-semibold text-sm tracking-widest uppercase text-ink border-b border-outline-variant/60 pb-3 mb-2">
+                  Change Credentials Password
+                </h2>
+                
+                <form onSubmit={handleUpdatePassword} className="flex flex-col gap-4">
+                  <Input
+                    type="password"
+                    label="Current Password"
+                    placeholder="••••••••"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                  />
+                  
+                  <Input
+                    type="password"
+                    label="New Password"
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                  
+                  <Input
+                    type="password"
+                    label="Confirm New Password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+
+                  <Button type="submit" variant="primary" className="w-fit py-3 px-8 mt-2" disabled={isUpdatingPassword}>
+                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                  </Button>
+                </form>
+              </div>
             </div>
           )}
 

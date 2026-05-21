@@ -117,4 +117,45 @@ describe('Admin User Curation Integration Tests', () => {
     expect(res.body.success).toBe(false);
     expect(res.body.message).toContain('Self-deletion');
   });
+
+  it('should allow admin to force reset another user\'s password', async () => {
+    // Create a new target user
+    const targetUser = await User.create({
+      name: 'Target Customer',
+      email: 'target@stylee.com',
+      password: 'oldpassword123',
+      role: 'user',
+      isActive: true
+    });
+
+    const res = await request(app)
+      .patch(`/api/admin/users/${targetUser._id}/password`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ newPassword: 'adminforcednewpassword' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toContain('password reset successfully');
+
+    // Verify target user can log in with new password
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: targetUser.email,
+        password: 'adminforcednewpassword'
+      });
+    expect(loginRes.statusCode).toBe(200);
+    expect(loginRes.body.success).toBe(true);
+  });
+
+  it('should prevent admin from force resetting their own password', async () => {
+    const res = await request(app)
+      .patch(`/api/admin/users/${adminUser._id}/password`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ newPassword: 'selfresetattempt' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toContain('Self-password reset is blocked');
+  });
 });

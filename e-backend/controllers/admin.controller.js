@@ -432,6 +432,37 @@ const deleteUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, 'User permanently deleted successfully'));
 });
 
+// @desc    Force reset user password by admin
+// @route   PATCH /api/admin/users/:id/password
+// @access  Private/Admin
+const updateUserPasswordAdmin = asyncHandler(async (req, res) => {
+  const { newPassword } = req.body;
+
+  if (!newPassword) {
+    throw new ApiError(400, 'New password is required');
+  }
+
+  if (newPassword.length < 6) {
+    throw new ApiError(400, 'New password must be at least 6 characters');
+  }
+
+  if (req.user._id.toString() === req.params.id) {
+    throw new ApiError(400, 'Self-password reset is blocked. Please change your password from the profile page.');
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, 'User password reset successfully'));
+});
+
 // @desc    Get all categories (including inactive ones)
 // @route   GET /api/admin/categories
 // @access  Private/Admin
@@ -622,6 +653,7 @@ module.exports = {
   updateUserRole,
   updateUserStatus,
   deleteUser,
+  updateUserPasswordAdmin,
   getCategoriesAdmin,
   createCategoryAdmin,
   updateCategoryAdmin,

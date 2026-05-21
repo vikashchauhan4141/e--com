@@ -91,4 +91,70 @@ describe('Auth Integration Tests', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.user.email).toBe(testUser.email.toLowerCase());
   });
+
+  it('should successfully update own password and allow login with new password', async () => {
+    // Login to get token
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: testUser.email,
+        password: testUser.password
+      });
+    const token = loginRes.body.data.token;
+
+    // Update password
+    const updateRes = await request(app)
+      .patch('/api/users/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        currentPassword: testUser.password,
+        newPassword: 'newsecurepassword123'
+      });
+
+    expect(updateRes.statusCode).toBe(200);
+    expect(updateRes.body.success).toBe(true);
+    expect(updateRes.body.message).toContain('Password updated successfully');
+
+    // Attempt login with old password (should fail)
+    const oldLoginRes = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: testUser.email,
+        password: testUser.password
+      });
+    expect(oldLoginRes.statusCode).toBe(401);
+
+    // Attempt login with new password (should succeed)
+    const newLoginRes = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: testUser.email,
+        password: 'newsecurepassword123'
+      });
+    expect(newLoginRes.statusCode).toBe(200);
+    expect(newLoginRes.body.success).toBe(true);
+  });
+
+  it('should reject password update if current password is wrong', async () => {
+    // Login to get token
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: testUser.email,
+        password: 'newsecurepassword123'
+      });
+    const token = loginRes.body.data.token;
+
+    // Update password with incorrect current password
+    const updateRes = await request(app)
+      .patch('/api/users/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        currentPassword: 'wrongpassword',
+        newPassword: 'anothernewpassword123'
+      });
+
+    expect(updateRes.statusCode).toBe(401);
+    expect(updateRes.body.success).toBe(false);
+  });
 });

@@ -4,7 +4,8 @@ import {
   IoShieldCheckmarkOutline, 
   IoPersonOutline,
   IoSyncOutline,
-  IoTrashOutline
+  IoTrashOutline,
+  IoKeyOutline
 } from 'react-icons/io5';
 import { api } from '../../utils/api';
 import { AuthContext } from '../../context/AuthContext';
@@ -123,6 +124,36 @@ export const AdminUsers = () => {
       fetchUsers();
     } catch (err) {
       toast.error(err.message || 'Failed to delete user');
+    }
+  };
+  
+  // Force reset user password by admin
+  const handlePasswordResetAdmin = async (userId, userName) => {
+    if (userId === currentUser._id) {
+      toast.error('Self-password reset from admin users panel is blocked. Please change it in your profile.');
+      return;
+    }
+
+    const newPassword = window.prompt(`Enter a new secure credentials password for ${userName}:`);
+    if (newPassword === null) return; // cancelled
+
+    if (!newPassword || newPassword.trim() === '') {
+      toast.error('Password cannot be empty');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('New password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      const loadingToast = toast.loading(`Overriding password for ${userName}...`);
+      await api.patch(`/admin/users/${userId}/password`, { newPassword });
+      toast.dismiss(loadingToast);
+      toast.success(`Password updated successfully for ${userName}`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to override user password');
     }
   };
 
@@ -286,6 +317,15 @@ export const AdminUsers = () => {
                             }`}
                           >
                             {item.isActive !== false ? 'Disable' : 'Enable'}
+                          </button>
+
+                          {/* Force Reset Password Button */}
+                          <button
+                            onClick={() => handlePasswordResetAdmin(item._id, item.name)}
+                            title="Override Password"
+                            className="p-1.5 text-primary hover:bg-primary/10 border border-transparent hover:border-primary/20 rounded transition-colors"
+                          >
+                            <IoKeyOutline size={14} />
                           </button>
 
                           {/* Permanently Delete Button */}

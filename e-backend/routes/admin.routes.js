@@ -12,6 +12,7 @@ const {
   updateUserRole,
   updateUserStatus,
   deleteUser,
+  updateUserPasswordAdmin,
   getCategoriesAdmin,
   createCategoryAdmin,
   updateCategoryAdmin,
@@ -52,5 +53,6 @@ router.get('/users', getUsers);
 router.patch('/users/:id/role', updateUserRole);
 router.patch('/users/:id/status', updateUserStatus);
 router.delete('/users/:id', deleteUser);
+router.patch('/users/:id/password', updateUserPasswordAdmin);
 
 module.exports = router;
