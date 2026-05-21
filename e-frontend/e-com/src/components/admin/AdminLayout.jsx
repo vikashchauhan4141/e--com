@@ -8,7 +8,8 @@ import {
   IoArrowBackOutline,
   IoMenu,
   IoClose,
-  IoLogOutOutline
+  IoLogOutOutline,
+  IoPersonOutline
 } from 'react-icons/io5';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -81,6 +82,13 @@ export const AdminLayout = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <Link
+              to="/profile"
+              className="flex items-center gap-3 px-4 py-2 rounded text-[10px] font-bold tracking-wider uppercase text-secondary hover:text-ink hover:bg-surface-container-low transition-colors duration-200"
+            >
+              <IoPersonOutline size={16} />
+              My Profile
+            </Link>
             <Link
               to="/"
               className="flex items-center gap-3 px-4 py-2 rounded text-[10px] font-bold tracking-wider uppercase text-secondary hover:text-ink hover:bg-surface-container-low transition-colors duration-200"
@@ -191,6 +199,14 @@ export const AdminLayout = () => {
               </div>
 
               <div className="flex flex-col gap-2">
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2 text-[10px] font-semibold tracking-wider uppercase text-secondary hover:text-ink"
+                >
+                  <IoPersonOutline size={16} />
+                  My Profile
+                </Link>
                 <Link
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}

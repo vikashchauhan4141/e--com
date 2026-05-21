@@ -125,6 +125,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateAvatar = async (formData) => {
+    const loadingToast = toast.loading('Uploading avatar...');
+    try {
+      const data = await api.patch('/users/avatar', formData);
+      if (data && data.user) {
+        setUser(data.user);
+        toast.success('Avatar updated successfully', { id: loadingToast });
+        return true;
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to upload avatar.', { id: loadingToast });
+      throw err;
+    }
+  };
+
   const addAddress = async (address) => {
     try {
       const data = await api.post('/addresses', address);
@@ -172,6 +187,7 @@ export const AuthProvider = ({ children }) => {
       register,
       logout,
       updateProfile,
+      updateAvatar,
       addAddress,
       deleteAddress,
       placeOrder,

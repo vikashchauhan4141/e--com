@@ -48,8 +48,30 @@ const updatePassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, 'Password updated successfully'));
 });
 
+const { uploadStreamToCloudinary } = require('../services/cloudinary.service');
+
+const updateAvatar = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, 'Please upload a valid image file');
+  }
+
+  try {
+    const result = await uploadStreamToCloudinary(req.file.buffer, 'stylee_avatars');
+    req.user.avatar = result.secure_url;
+    await req.user.save();
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, { user: req.user }, 'Avatar updated successfully'));
+  } catch (err) {
+    console.error('Avatar upload failure:', err);
+    throw new ApiError(500, `Avatar upload failed: ${err.message}`);
+  }
+});
+
 module.exports = {
   getProfile,
   updateProfile,
   updatePassword,
+  updateAvatar,
 };

@@ -1,6 +1,6 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IoBagCheckOutline, IoLocationOutline, IoPersonOutline, IoAddOutline, IoTrashOutline } from 'react-icons/io5';
+import { IoBagCheckOutline, IoLocationOutline, IoPersonOutline, IoAddOutline, IoTrashOutline, IoCameraOutline } from 'react-icons/io5';
 import { AuthContext } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import { Button } from '../components/ui/Button';
@@ -10,9 +10,11 @@ import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
 export const Profile = () => {
-  const { user, isAuthenticated, addresses, orders, updateProfile, addAddress, deleteAddress } = useContext(AuthContext);
+  const { user, isAuthenticated, addresses, orders, updateProfile, updateAvatar, addAddress, deleteAddress } = useContext(AuthContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('orders');
+  
+  const fileInputRef = useRef(null);
 
   // Redirection checks
   useEffect(() => {
@@ -24,6 +26,29 @@ export const Profile = () => {
   // Profile Form State
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profilePhone, setProfilePhone] = useState(user?.phone || '');
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size must be under 2MB');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      await updateAvatar(formData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Password Update Form State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -342,6 +367,43 @@ export const Profile = () => {
                 </h2>
                 
                 <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
+                  {/* Interactive Avatar Upload Section */}
+                  <div className="flex flex-col items-center sm:items-start gap-4 mb-4 pb-4 border-b border-outline-variant/30">
+                    <label className="font-heading font-semibold text-[9px] tracking-widest uppercase text-secondary">
+                      Profile Avatar
+                    </label>
+                    <div className="flex flex-col sm:flex-row items-center gap-6">
+                      <div 
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="group relative w-16 h-16 rounded-full overflow-hidden cursor-pointer border border-outline-variant/60 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary/50"
+                      >
+                        <img 
+                          src={user.avatar} 
+                          alt={user.name} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                        />
+                        <div className="absolute inset-0 bg-ink/45 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-300 text-white gap-1">
+                          <IoCameraOutline size={16} />
+                          <span className="text-[7px] font-heading font-bold uppercase tracking-wider">Change</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
+                        <h4 className="font-sans font-bold text-xs text-ink">{user.name}</h4>
+                        <p className="text-[9px] text-secondary leading-relaxed font-sans">
+                          Click avatar to upload a new image.<br />JPEG, PNG or WEBP under 2MB.
+                        </p>
+                        <input 
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleAvatarChange}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <Input
                     label="Registered Email"
                     value={user.email}
