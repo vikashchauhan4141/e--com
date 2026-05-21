@@ -12,6 +12,7 @@ import {
 } from 'react-icons/io5';
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
+import { Pagination } from '../../components/common/Pagination';
 
 export const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -19,6 +20,8 @@ export const AdminOrders = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState('All');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Direct Admin Order Creation states
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -48,8 +51,15 @@ export const AdminOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const data = await api.get('/admin/orders');
+      const q = new URLSearchParams();
+      q.append('page', page);
+      q.append('limit', 10);
+      if (filterStatus && filterStatus !== 'All') {
+        q.append('status', filterStatus);
+      }
+      const data = await api.get(`/admin/orders?${q.toString()}`);
       setOrders(data.orders || []);
+      setTotalPages(data.meta?.totalPages || 1);
     } catch (err) {
       toast.error('Failed to load dispatch catalog');
       console.error(err);
@@ -59,9 +69,14 @@ export const AdminOrders = () => {
     }
   };
 
+  // Reset page to 1 when filter status changes
+  useEffect(() => {
+    setPage(1);
+  }, [filterStatus]);
+
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [page, filterStatus]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -285,10 +300,8 @@ export const AdminOrders = () => {
     return map[status] || 'bg-outline/10 text-secondary';
   };
 
-  // Filter orders based on filterStatus
-  const filteredOrders = filterStatus === 'All' 
-    ? orders 
-    : orders.filter(ord => ord.status === filterStatus);
+  // Filtered orders comes directly paginated from backend
+  const filteredOrders = orders;
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -327,7 +340,6 @@ export const AdminOrders = () => {
       <div className="flex border-b border-outline-variant gap-6 overflow-x-auto pb-px">
         {['All', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((tab) => {
           const isActive = filterStatus === tab;
-          const count = tab === 'All' ? orders.length : orders.filter(o => o.status === tab).length;
           return (
             <button
               key={tab}
@@ -337,9 +349,6 @@ export const AdminOrders = () => {
               }`}
             >
               <span>{tab}</span>
-              <span className="ml-1.5 px-1.5 py-0.5 text-[8px] bg-surface-container rounded-full text-secondary">
-                {count}
-              </span>
               {isActive && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-slideIn"></span>
               )}
@@ -563,6 +572,13 @@ export const AdminOrders = () => {
           })}
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
 
       {/* DIRECT ORDER PLACEMENT GLASS OVERLAY MODAL */}
       {createModalOpen && (

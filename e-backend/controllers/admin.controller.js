@@ -235,13 +235,41 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/orders
 // @access  Private/Admin
 const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find()
-    .populate('user', 'name email')
-    .sort({ createdAt: -1 });
+  const { page = 1, limit = 10, status } = req.query;
+  const filter = {};
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, { orders }, 'Orders fetched successfully'));
+  if (status && status !== 'All') {
+    filter.status = status;
+  }
+
+  const currentPage = Math.max(Number(page), 1);
+  const pageSize = Math.min(Math.max(Number(limit), 1), 100);
+  const skip = (currentPage - 1) * pageSize;
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize),
+    Order.countDocuments(filter),
+  ]);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        orders,
+        meta: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      },
+      'Orders fetched successfully'
+    )
+  );
 });
 
 // @desc    Update order status or payment status
@@ -274,11 +302,44 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/users
 // @access  Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select('-password').sort({ createdAt: -1 });
+  const { page = 1, limit = 10, search } = req.query;
+  const filter = {};
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, { users }, 'Users fetched successfully'));
+  if (search) {
+    filter.$or = [
+      { name: new RegExp(search, 'i') },
+      { email: new RegExp(search, 'i') },
+    ];
+  }
+
+  const currentPage = Math.max(Number(page), 1);
+  const pageSize = Math.min(Math.max(Number(limit), 1), 100);
+  const skip = (currentPage - 1) * pageSize;
+
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize),
+    User.countDocuments(filter),
+  ]);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        users,
+        meta: {
+          page: currentPage,
+          limit: pageSize,
+          total,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      },
+      'Users fetched successfully'
+    )
+  );
 });
 
 // @desc    Update user role

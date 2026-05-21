@@ -11,6 +11,7 @@ import {
 import { api } from '../../utils/api';
 import toast from 'react-hot-toast';
 import { ImageUploadDropzone } from '../../components/admin/ImageUploadDropzone';
+import { Pagination } from '../../components/common/Pagination';
 
 export const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -20,6 +21,8 @@ export const AdminProducts = () => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -49,9 +52,12 @@ export const AdminProducts = () => {
       if (search) q.append('search', search);
       if (selectedCategory) q.append('category', selectedCategory);
       if (selectedGender) q.append('gender', selectedGender);
+      q.append('page', page);
+      q.append('limit', 10);
 
       const data = await api.get(`/admin/products?${q.toString()}`);
       setProducts(data.products || []);
+      setTotalPages(data.meta?.totalPages || 1);
     } catch (err) {
       toast.error('Failed to load products list');
       console.error(err);
@@ -70,10 +76,18 @@ export const AdminProducts = () => {
     }
   };
 
+  // Reset page to 1 on search or filter change
+  useEffect(() => {
+    setPage(1);
+  }, [search, selectedCategory, selectedGender]);
+
   useEffect(() => {
     fetchProducts();
+  }, [page, search, selectedCategory, selectedGender]);
+
+  useEffect(() => {
     fetchCategories();
-  }, [search, selectedCategory, selectedGender]);
+  }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -428,6 +442,13 @@ export const AdminProducts = () => {
           </table>
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
 
       {/* CURATION OVERLAY DIALOG MODAL BOX */}
       {modalOpen && (

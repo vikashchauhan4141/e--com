@@ -5,6 +5,7 @@ import { api } from '../utils/api';
 import { ProductCard } from '../components/shared/ProductCard';
 import { ProductCardSkeleton } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
+import { Pagination } from '../components/common/Pagination';
 
 const SIZES = ["XS", "S", "M", "L", "XL", "One Size"];
 const COLORS = ["White", "Lavender", "Sand", "Charcoal", "Black", "Gold", "Blue"];
@@ -17,6 +18,8 @@ export const Shop = () => {
   const [productsList, setProductsList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +57,12 @@ export const Shop = () => {
     fetchCategories();
   }, []);
 
-  // Fetch products dynamically when filters or sorting change
+  // Reset page to 1 when filters change to avoid empty pages
+  useEffect(() => {
+    setPage(1);
+  }, [categoryParam, selectedGender, selectedSize, selectedColor, priceRange, debouncedSearch, sortBy]);
+
+  // Fetch products dynamically when filters, sorting or page change
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -68,8 +76,8 @@ export const Shop = () => {
         if (debouncedSearch) queryParams.append('search', debouncedSearch);
         if (sortBy && sortBy !== 'default') queryParams.append('sort', sortBy);
         
-        // Fetch higher limits to get all products in catalog
-        queryParams.append('limit', '100');
+        queryParams.append('page', page.toString());
+        queryParams.append('limit', '12');
 
         const data = await api.get(`/products?${queryParams.toString()}`);
         if (data && data.products) {
@@ -80,6 +88,7 @@ export const Shop = () => {
             category: p.categoryName || (p.category && typeof p.category === 'object' ? p.category.name : p.category)
           }));
           setProductsList(mapped);
+          setTotalPages(data.meta?.totalPages || 1);
         }
       } catch (err) {
         console.error('Failed to fetch products:', err.message);
@@ -89,7 +98,7 @@ export const Shop = () => {
     };
 
     fetchProducts();
-  }, [categoryParam, selectedGender, selectedSize, selectedColor, priceRange, debouncedSearch, sortBy]);
+  }, [page, categoryParam, selectedGender, selectedSize, selectedColor, priceRange, debouncedSearch, sortBy]);
 
   const activeCategory = categoryParam;
 
@@ -312,6 +321,13 @@ export const Shop = () => {
               </Button>
             </div>
           )}
+
+          {/* Pagination Controls */}
+          <Pagination 
+            currentPage={page} 
+            totalPages={totalPages} 
+            onPageChange={setPage} 
+          />
         </main>
 
       </div>

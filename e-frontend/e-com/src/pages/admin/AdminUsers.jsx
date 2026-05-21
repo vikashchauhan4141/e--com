@@ -8,6 +8,7 @@ import {
 import { api } from '../../utils/api';
 import { AuthContext } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { Pagination } from '../../components/common/Pagination';
 
 export const AdminUsers = () => {
   const { user: currentUser } = useContext(AuthContext);
@@ -15,11 +16,20 @@ export const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchUsers = async () => {
     try {
-      const data = await api.get('/admin/users');
+      const q = new URLSearchParams();
+      q.append('page', page);
+      q.append('limit', 10);
+      if (search) {
+        q.append('search', search);
+      }
+      const data = await api.get(`/admin/users?${q.toString()}`);
       setUsers(data.users || []);
+      setTotalPages(data.meta?.totalPages || 1);
     } catch (err) {
       toast.error('Failed to query user registry');
       console.error(err);
@@ -29,9 +39,14 @@ export const AdminUsers = () => {
     }
   };
 
+  // Reset page to 1 when search filters change
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page, search]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -63,11 +78,8 @@ export const AdminUsers = () => {
     }
   };
 
-  // Filter users based on search
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(search.toLowerCase()) || 
-    user.email.toLowerCase().includes(search.toLowerCase())
-  );
+  // Users are already filtered and paginated from backend
+  const filteredUsers = users;
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -207,6 +219,13 @@ export const AdminUsers = () => {
           </table>
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <Pagination 
+        currentPage={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
 
     </div>
   );
