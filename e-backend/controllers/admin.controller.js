@@ -302,10 +302,17 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // @route   DELETE /api/admin/orders/:id
 // @access  Private/Admin
 const deleteOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findByIdAndDelete(req.params.id);
+  const order = await Order.findById(req.params.id);
   if (!order) {
     throw new ApiError(404, 'Order not found');
   }
+
+  // Business Guard: Only allow deleting cancelled orders to preserve ledger integrity
+  if (order.status !== 'Cancelled') {
+    throw new ApiError(400, 'Only cancelled orders can be removed from history');
+  }
+
+  await Order.findByIdAndDelete(req.params.id);
 
   res
     .status(200)

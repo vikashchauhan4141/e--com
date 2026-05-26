@@ -8,10 +8,12 @@ import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { api } from '../utils/api';
 import toast from 'react-hot-toast';
+import { useConfirm } from '../context/ConfirmContext';
 
 export const Profile = () => {
   const { user, isAuthenticated, addresses, orders, updateProfile, updateAvatar, addAddress, deleteAddress, retryOrderPayment, verifyOrderPayment, cancelOrder, deleteOrder } = useContext(AuthContext);
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState('orders');
   
   const fileInputRef = useRef(null);
@@ -202,8 +204,15 @@ export const Profile = () => {
   };
 
   const handleCancelOrder = async (order) => {
-    const confirmCancel = window.confirm(`Are you sure you want to cancel Order #${order.id}? This will restore the products back to our boutique stock.`);
-    if (!confirmCancel) return;
+    const proceed = await confirm({
+      title: 'Cancel Order',
+      message: `Are you sure you want to cancel Order #${order.id}? This will restore the products back to our boutique stock in real-time.`,
+      confirmText: 'Yes, Cancel',
+      cancelText: 'Keep Order',
+      isDanger: true,
+    });
+
+    if (!proceed) return;
 
     try {
       await cancelOrder(order.dbId);
@@ -213,13 +222,38 @@ export const Profile = () => {
   };
 
   const handleDeleteOrder = async (order) => {
-    const confirmDelete = window.confirm(`Are you sure you want to remove Order #${order.id} from your history permanently? This will delete it from our servers.`);
-    if (!confirmDelete) return;
+    if (order.status !== 'Cancelled') {
+      toast.error('Only cancelled orders can be removed from history');
+      return;
+    }
+    const proceed = await confirm({
+      title: 'Remove Order from History',
+      message: `Are you sure you want to remove Order #${order.id} from your history permanently? This will delete it from our servers.`,
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      isDanger: true,
+    });
+
+    if (!proceed) return;
 
     try {
       await deleteOrder(order.dbId);
     } catch (err) {
       console.error("Order deletion failed:", err);
+    }
+  };
+
+  const handleDeleteAddress = async (addrId) => {
+    const proceed = await confirm({
+      title: 'Delete Address',
+      message: 'Are you sure you want to delete this saved shipping address from your account profile permanently?',
+      confirmText: 'Delete Address',
+      cancelText: 'Cancel',
+      isDanger: true,
+    });
+
+    if (proceed) {
+      deleteAddress(addrId);
     }
   };
 
@@ -285,14 +319,16 @@ export const Profile = () => {
                 <div className="flex flex-col gap-6">
                   {orders.map((order) => (
                     <Card key={order.id} padding="md" className="border border-outline-variant relative">
-                      {/* Trash / Delete button in top-right corner */}
-                      <button
-                        onClick={() => handleDeleteOrder(order)}
-                        className="absolute top-4 right-4 text-secondary hover:text-error transition-colors p-1"
-                        title="Remove Order from History"
-                      >
-                        <IoTrashOutline size={16} />
-                      </button>
+                      {/* Trash / Delete button in top-right corner - only for Cancelled orders */}
+                      {order.status === 'Cancelled' && (
+                        <button
+                          onClick={() => handleDeleteOrder(order)}
+                          className="absolute top-4 right-4 text-secondary hover:text-error transition-colors p-1"
+                          title="Remove Order from History"
+                        >
+                          <IoTrashOutline size={16} />
+                        </button>
+                      )}
 
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-outline-variant/60 pb-4 mb-4 gap-2 pr-6">
                         <div>
@@ -451,7 +487,7 @@ export const Profile = () => {
                   {addresses.map((addr) => (
                     <Card key={addr.id} padding="md" className="border border-outline-variant relative flex flex-col items-start gap-1">
                       <button
-                        onClick={() => deleteAddress(addr.id)}
+                        onClick={() => handleDeleteAddress(addr.id)}
                         className="absolute top-4 right-4 text-secondary hover:text-error transition-colors p-1"
                         title="Delete Address"
                       >

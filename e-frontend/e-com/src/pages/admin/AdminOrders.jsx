@@ -122,6 +122,12 @@ export const AdminOrders = () => {
 
   // Permanently delete an order from database ledgers
   const handleDeleteOrder = async (id) => {
+    const order = orders.find(o => o._id === id);
+    if (order && order.status !== 'Cancelled') {
+      toast.error('Only cancelled orders can be removed from records');
+      return;
+    }
+
     const confirmed = await confirm({
       title: 'Delete Order Ledger',
       message: 'Are you sure you want to permanently delete this order? This action cannot be undone.',
@@ -501,14 +507,16 @@ export const AdminOrders = () => {
                       {isExpanded ? <IoChevronUp size={16} /> : <IoChevronDown size={16} />}
                     </button>
 
-                    {/* Permanently delete order */}
-                    <button 
-                      onClick={() => handleDeleteOrder(order._id)}
-                      className="p-1.5 rounded hover:bg-error/10 text-secondary hover:text-error mt-4 transition-colors duration-150"
-                      title="Delete Order"
-                    >
-                      <IoTrashOutline size={15} />
-                    </button>
+                    {/* Permanently delete order - only for Cancelled orders */}
+                    {order.status === 'Cancelled' && (
+                      <button 
+                        onClick={() => handleDeleteOrder(order._id)}
+                        className="p-1.5 rounded hover:bg-error/10 text-secondary hover:text-error mt-4 transition-colors duration-150"
+                        title="Delete Order"
+                      >
+                        <IoTrashOutline size={15} />
+                      </button>
+                    )}
 
                   </div>
 

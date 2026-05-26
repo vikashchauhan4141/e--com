@@ -9,11 +9,13 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import toast from 'react-hot-toast';
+import { useConfirm } from '../context/ConfirmContext';
 
 export const Checkout = () => {
   const { cartItems, total, subtotal, shipping, discount, clearCart } = useContext(CartContext);
   const { user, isAuthenticated, addresses, placeOrder, verifyOrderPayment, addAddress, deleteAddress } = useContext(AuthContext);
   const navigate = useNavigate();
+  const confirm = useConfirm();
 
   // Redirect checks
   useEffect(() => {
@@ -258,9 +260,18 @@ export const Checkout = () => {
                             {/* Delete address button */}
                             <button
                               type="button"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation(); // Avoid selecting the card when deleting it
-                                deleteAddress(addr._id || addr.id);
+                                const proceed = await confirm({
+                                  title: 'Delete Address',
+                                  message: 'Are you sure you want to delete this saved shipping address from your account profile permanently?',
+                                  confirmText: 'Delete Address',
+                                  cancelText: 'Cancel',
+                                  isDanger: true,
+                                });
+                                if (proceed) {
+                                  deleteAddress(addr._id || addr.id);
+                                }
                               }}
                               className="absolute top-3 right-3 text-secondary hover:text-error transition-colors p-1"
                               title="Delete Address"

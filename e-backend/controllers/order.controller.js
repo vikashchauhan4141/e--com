@@ -95,11 +95,18 @@ const cancelUserOrder = asyncHandler(async (req, res) => {
 
 const deleteUserOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const order = await Order.findOneAndDelete({ _id: id, user: req.user._id });
-
+  
+  const order = await Order.findOne({ _id: id, user: req.user._id });
   if (!order) {
     throw new ApiError(404, 'Order not found');
   }
+
+  // Business Guard: Prevent deleting active, un-cancelled orders
+  if (order.status !== 'Cancelled') {
+    throw new ApiError(400, 'Only cancelled orders can be removed from history');
+  }
+
+  await Order.findByIdAndDelete(id);
 
   res
     .status(200)
