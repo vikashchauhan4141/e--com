@@ -220,7 +220,7 @@ export const products = [
     "stock": 25,
     "sizes": ["S", "M", "L"],
     "colors": ["Lavender", "White"],
-    "image": "https://images.unsplash.com/photo-1631541909061-7fc314f73396?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
     "description": "Lightweight modal-satin coordinate sleepwear set. Elegant contrast piping on cuffs, pocket, and collar."
   },
   {
