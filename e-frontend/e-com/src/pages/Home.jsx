@@ -159,7 +159,7 @@ export const Home = () => {
         <div className="animate-marquee whitespace-nowrap flex items-center gap-16 text-white">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="inline-flex items-center gap-16 font-heading font-semibold text-[9px] tracking-[0.25em] uppercase text-surface-container-low/95">
-              <span>Free Domestic Shipping over ₹5,000</span>
+              <span>Free Domestic Shipping on All Orders</span>
               <span className="w-1.5 h-1.5 rounded-full bg-primary-accent" />
               <span>100% Belgian Flax Linen & Mulberry Silk</span>
               <span className="w-1.5 h-1.5 rounded-full bg-primary-accent" />

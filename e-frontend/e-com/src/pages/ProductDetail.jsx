@@ -268,7 +268,7 @@ export const ProductDetail = () => {
 
           {/* Sizing alert detail */}
           <p className="text-[10px] text-outline font-sans leading-relaxed">
-            Free shipping on orders above ₹5,000. Easy exchanges and returns within 14 days of dispatch.
+            Free shipping on all orders. Easy exchanges and returns within 14 days of dispatch.
           </p>
 
         </div>

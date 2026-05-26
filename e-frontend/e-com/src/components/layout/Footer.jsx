@@ -86,7 +86,7 @@ export const Footer = () => {
               <a href="mailto:vikashchauhan414141@gmail.com" className="hover:text-white transition-colors break-all">vikashchauhan414141@gmail.com</a>
             </li>
             <li className="text-[10px] text-primary-accent font-semibold tracking-wider uppercase mt-2">
-              Free Shipping over ₹5,000
+              Free Shipping on All Orders
             </li>
           </ul>
         </div>

@@ -249,7 +249,7 @@ export const CartProvider = ({ children }) => {
 
   const shipping = isAuthenticated && dbCart
     ? dbCart.shipping
-    : (subtotal > 5000 || promoCode === 'FREESHIP' ? 0 : (subtotal > 0 ? 150 : 0));
+    : 0;
 
   const discount = isAuthenticated && dbCart
     ? dbCart.discount

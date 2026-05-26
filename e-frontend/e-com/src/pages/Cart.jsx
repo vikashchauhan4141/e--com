@@ -158,9 +158,9 @@ export const Cart = () => {
                 </span>
               </div>
               
-              {shipping > 0 && (
-                <p className="text-[9px] text-outline font-sans -mt-1 leading-normal">
-                  Add {formatPrice(5000 - subtotal)} more to qualify for Free Shipping.
+              {shipping === 0 && (
+                <p className="text-[10px] text-emerald-600 font-sans -mt-1 leading-normal font-semibold">
+                  🎉 Congratulations! Your order qualifies for Free Shipping.
                 </p>
               )}
             </div>

@@ -1,7 +1,7 @@
 const { findCoupon } = require('../config/coupons');
 
-const FREE_SHIPPING_MINIMUM = 5000;
-const STANDARD_SHIPPING = 150;
+const FREE_SHIPPING_MINIMUM = 0;
+const STANDARD_SHIPPING = 0;
 
 /** Normalizes a raw coupon string to match stored keys. */
 const normalizeCoupon = (code = '') => code.trim().toUpperCase();
