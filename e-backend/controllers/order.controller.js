@@ -2,7 +2,7 @@ const Order = require('../models/order.model');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const asyncHandler = require('../utils/asyncHandler');
-const { createOrderFromCart, verifyPayment } = require('../services/order.service');
+const { createOrderFromCart, verifyPayment, reinitiatePayment } = require('../services/order.service');
 
 const createOrder = asyncHandler(async (req, res) => {
   const order = await createOrderFromCart(req.user._id, req.body);
@@ -75,9 +75,19 @@ const verifyOrderPayment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { order }, 'Payment signature verified successfully'));
 });
 
+const retryOrderPayment = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const paymentDetails = await reinitiatePayment(id, req.user._id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, paymentDetails, 'Payment re-initialized successfully'));
+});
+
 module.exports = {
   createOrder,
   getMyOrders,
   getOrderById,
   verifyOrderPayment,
+  retryOrderPayment,
 };

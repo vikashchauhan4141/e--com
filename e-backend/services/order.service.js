@@ -229,6 +229,41 @@ const verifyPayment = async ({ orderId, razorpayPaymentId, razorpayOrderId, razo
   return order;
 };
 
+const reinitiatePayment = async (orderId, userId) => {
+  const order = await Order.findOne({ _id: orderId, user: userId });
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  if (order.payment.status === 'Paid') {
+    throw new ApiError(400, 'This order has already been paid');
+  }
+
+  if (order.payment.method !== 'ONLINE') {
+    throw new ApiError(400, 'Only online orders can re-initiate payments');
+  }
+
+  // Create a new Razorpay order to guarantee it hasn't expired since drafting
+  const razorpayOrder = await razorpay.orders.create({
+    amount: Math.round(order.pricing.total * 100), // amount in paisa
+    currency: 'INR',
+    receipt: order._id.toString(),
+  });
+
+  order.payment.razorpayOrderId = razorpayOrder.id;
+  await order.save();
+
+  return {
+    razorpayOrder: {
+      id: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: env.razorpayKeyId,
+    },
+    order,
+  };
+};
+
 const getCheckoutSummary = async (userId) => {
   const cart = await getOrCreateCart(userId);
   return serializeCart(cart);
@@ -237,5 +272,6 @@ const getCheckoutSummary = async (userId) => {
 module.exports = {
   createOrderFromCart,
   verifyPayment,
+  reinitiatePayment,
   getCheckoutSummary,
 };

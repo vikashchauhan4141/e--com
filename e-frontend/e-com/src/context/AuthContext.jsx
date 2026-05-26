@@ -29,8 +29,11 @@ export const AuthProvider = ({ children }) => {
       // Format orders to match frontend expectation perfectly
       const formatted = (data.orders || []).map(order => ({
         id: order.orderNumber,
+        dbId: order._id,
         date: new Date(order.createdAt).toISOString().split('T')[0],
         status: order.status,
+        paymentStatus: order.payment?.status || 'Pending',
+        paymentMethod: order.payment?.method || 'COD',
         total: order.pricing.total,
         items: order.items.map(item => ({
           name: item.name,
@@ -185,6 +188,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const retryOrderPayment = async (orderId) => {
+    try {
+      const data = await api.post(`/orders/${orderId}/retry-payment`);
+      return data;
+    } catch (err) {
+      toast.error(err.message || 'Failed to re-initialize payment.');
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user: user ? {
@@ -204,6 +217,7 @@ export const AuthProvider = ({ children }) => {
       deleteAddress,
       placeOrder,
       verifyOrderPayment,
+      retryOrderPayment,
       refreshAddresses: fetchAddresses,
       refreshOrders: fetchOrders
     }}>

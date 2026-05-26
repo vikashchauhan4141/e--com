@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IoChevronForwardOutline, IoShieldCheckmarkOutline, IoLockClosedOutline } from 'react-icons/io5';
+import { IoChevronForwardOutline, IoShieldCheckmarkOutline, IoLockClosedOutline, IoTrashOutline } from 'react-icons/io5';
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 
 export const Checkout = () => {
   const { cartItems, total, subtotal, shipping, discount, clearCart } = useContext(CartContext);
-  const { user, isAuthenticated, addresses, placeOrder, verifyOrderPayment } = useContext(AuthContext);
+  const { user, isAuthenticated, addresses, placeOrder, verifyOrderPayment, addAddress, deleteAddress } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // Redirect checks
@@ -47,6 +47,7 @@ export const Checkout = () => {
 
   // Step 2: Payment Details State
   const [paymentMethod, setPaymentMethod] = useState('ONLINE'); // Default to ONLINE
+  const [saveAddressToProfile, setSaveAddressToProfile] = useState(true); // Save address to profile checkbox state
 
   if (cartItems.length === 0 || !user) return null;
 
@@ -89,6 +90,25 @@ export const Checkout = () => {
   const handlePlaceOrder = async () => {
     const loadingToast = toast.loading("Processing order details...");
     try {
+      // Automatically save address to profile if "Save Address" checkbox is checked
+      if (selectedAddrId === 'new' && saveAddressToProfile) {
+        try {
+          await addAddress({
+            type: 'Home',
+            fullName: newFullName,
+            street: newStreet,
+            city: newCity,
+            state: newState,
+            zipCode: newZip,
+            country: 'India',
+            phone: newPhone,
+            isDefault: addresses.length === 0
+          });
+        } catch (addrErr) {
+          console.error("Failed to save new address to profile:", addrErr);
+        }
+      }
+
       const payload = {
         paymentMethod: paymentMethod,
       };
@@ -229,16 +249,33 @@ export const Checkout = () => {
                         {addresses.map((addr) => (
                           <div 
                             key={addr._id}
-                            onClick={() => setSelectedAddrId(addr._id)}
-                            className={`p-4 border rounded cursor-pointer transition-all ${
+                            className={`p-4 border rounded relative transition-all ${
                               selectedAddrId === addr._id
                                 ? 'border-primary bg-primary/5 shadow-sm'
                                 : 'border-outline-variant bg-surface-container-lowest hover:border-outline'
                             }`}
                           >
-                            <p className="font-sans font-semibold text-xs text-ink">{addr.fullName}</p>
-                            <p className="font-sans text-[11px] text-secondary mt-1">{addr.street}</p>
-                            <p className="font-sans text-[11px] text-secondary">{addr.city}, {addr.state} {addr.zipCode}</p>
+                            {/* Delete address button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Avoid selecting the card when deleting it
+                                deleteAddress(addr._id || addr.id);
+                              }}
+                              className="absolute top-3 right-3 text-secondary hover:text-error transition-colors p-1"
+                              title="Delete Address"
+                            >
+                              <IoTrashOutline size={13} />
+                            </button>
+
+                            <div 
+                              onClick={() => setSelectedAddrId(addr._id)}
+                              className="cursor-pointer pr-6" // add right padding so text doesn't overlap delete button
+                            >
+                              <p className="font-sans font-semibold text-xs text-ink">{addr.fullName}</p>
+                              <p className="font-sans text-[11px] text-secondary mt-1">{addr.street}</p>
+                              <p className="font-sans text-[11px] text-secondary">{addr.city}, {addr.state} {addr.zipCode}</p>
+                            </div>
                           </div>
                         ))}
                         <div 
@@ -311,6 +348,19 @@ export const Checkout = () => {
                         onChange={(e) => setNewPhone(e.target.value)}
                         required
                       />
+
+                      <div className="flex items-center gap-2 mt-2">
+                        <input
+                          type="checkbox"
+                          id="saveAddressCheckbox"
+                          checked={saveAddressToProfile}
+                          onChange={(e) => setSaveAddressToProfile(e.target.checked)}
+                          className="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary cursor-pointer"
+                        />
+                        <label htmlFor="saveAddressCheckbox" className="font-sans text-[11px] text-secondary cursor-pointer select-none">
+                          Save this address to my profile for future purchases
+                        </label>
+                      </div>
                     </Card>
                   )}
 

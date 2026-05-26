@@ -10,7 +10,7 @@ import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
 export const Profile = () => {
-  const { user, isAuthenticated, addresses, orders, updateProfile, updateAvatar, addAddress, deleteAddress } = useContext(AuthContext);
+  const { user, isAuthenticated, addresses, orders, updateProfile, updateAvatar, addAddress, deleteAddress, retryOrderPayment, verifyOrderPayment } = useContext(AuthContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('orders');
   
@@ -141,6 +141,66 @@ export const Profile = () => {
     setAddrPhone('');
   };
 
+  const handleRetryPayment = async (order) => {
+    const loadingToast = toast.loading("Re-initiating payment gateway...");
+    try {
+      const paymentDetails = await retryOrderPayment(order.dbId);
+      toast.dismiss(loadingToast);
+
+      const rpOrder = paymentDetails.razorpayOrder;
+      if (!rpOrder) {
+        toast.error("Failed to initialize payment gateway.");
+        return;
+      }
+
+      const options = {
+        key: rpOrder.keyId,
+        amount: rpOrder.amount,
+        currency: rpOrder.currency,
+        name: "Stylee Fashion",
+        description: `Complete Payment - Order #${order.id}`,
+        order_id: rpOrder.id,
+        handler: async function (response) {
+          const verificationToast = toast.loading("Verifying your payment transaction...");
+          try {
+            await verifyOrderPayment({
+              orderId: order.dbId,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            
+            toast.success("Payment Verified! Your order is confirmed.", { id: verificationToast });
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } catch (err) {
+            console.error("Signature verification failed:", err);
+            toast.error(err.message || "Payment verification failed.", { id: verificationToast });
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone || "",
+        },
+        theme: {
+          color: "#967bb6",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error("Payment was cancelled or dismissed.");
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.error(err.message || "Failed to re-initialize payment.", { id: loadingToast });
+    }
+  };
+
   return (
     <div className="max-w-container mx-auto px-6 lg:px-16 mt-6 min-h-screen">
       
@@ -208,11 +268,32 @@ export const Profile = () => {
                           <p className="font-heading font-bold text-xs tracking-wider text-primary">{order.id}</p>
                           <p className="text-[10px] font-sans text-secondary mt-0.5">Placed on {order.date}</p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          {/* Payment status badge */}
+                          <span className={`px-2.5 py-0.5 text-[9px] font-semibold tracking-wider uppercase rounded ${
+                            order.paymentStatus === 'Paid'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : order.paymentStatus === 'Failed'
+                              ? 'bg-red-50 text-red-700 border border-red-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}>
+                            Payment: {order.paymentStatus}
+                          </span>
+
                           <span className="px-2.5 py-1 text-[9px] font-semibold tracking-wider uppercase bg-primary-fixed text-primary-on-container rounded">
                             Status: {order.status}
                           </span>
                           <span className="font-heading font-bold text-xs text-ink">{formatPrice(order.total)}</span>
+
+                          {/* Pay Now Button for Pending Online Orders */}
+                          {order.paymentMethod === 'ONLINE' && order.paymentStatus === 'Pending' && (
+                            <button
+                              onClick={() => handleRetryPayment(order)}
+                              className="px-3 py-1 bg-primary text-white text-[9px] font-heading font-bold uppercase tracking-wider rounded shadow hover:bg-primary/95 transition-all duration-150 cursor-pointer"
+                            >
+                              Pay Now
+                            </button>
+                          )}
                         </div>
                       </div>
                       
