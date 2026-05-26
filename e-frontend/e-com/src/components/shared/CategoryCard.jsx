@@ -12,6 +12,7 @@ export const CategoryCard = ({ category }) => {
       <img
         src={category.image}
         alt={category.name}
+        loading="lazy"
         className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
       />
 

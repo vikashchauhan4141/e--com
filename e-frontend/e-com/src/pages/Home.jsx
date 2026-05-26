@@ -91,6 +91,8 @@ export const Home = () => {
               src={HERO_SLIDES[currentSlide].image}
               alt={HERO_SLIDES[currentSlide].title}
               className="w-full h-full object-cover object-center"
+              loading="eager"
+              fetchpriority="high"
             />
 
             {/* Slide Details Content */}

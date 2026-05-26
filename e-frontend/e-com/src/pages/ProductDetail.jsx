@@ -125,6 +125,8 @@ export const ProductDetail = () => {
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover object-center"
+            loading="eager"
+            fetchpriority="high"
           />
           {hasDiscount && (
             <Badge variant="accent" className="absolute top-4 left-4 z-10">
