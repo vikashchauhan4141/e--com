@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 
 export const Checkout = () => {
   const { cartItems, total, subtotal, shipping, discount, clearCart } = useContext(CartContext);
-  const { user, isAuthenticated, addresses, placeOrder } = useContext(AuthContext);
+  const { user, isAuthenticated, addresses, placeOrder, verifyOrderPayment } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // Redirect checks
@@ -46,10 +46,7 @@ export const Checkout = () => {
   }, [addresses]);
 
   // Step 2: Payment Details State
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-  const [cardName, setCardName] = useState(user?.name || '');
+  const [paymentMethod, setPaymentMethod] = useState('ONLINE'); // Default to ONLINE
 
   if (cartItems.length === 0 || !user) return null;
 
@@ -82,17 +79,18 @@ export const Checkout = () => {
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
-    if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
-      toast.error("Please complete all payment fields");
+    if (!paymentMethod) {
+      toast.error("Please select a payment method");
       return;
     }
     setStep('review');
   };
 
   const handlePlaceOrder = async () => {
+    const loadingToast = toast.loading("Processing order details...");
     try {
       const payload = {
-        paymentMethod: 'ONLINE',
+        paymentMethod: paymentMethod,
       };
       
       if (selectedAddrId !== 'new') {
@@ -109,15 +107,66 @@ export const Checkout = () => {
         };
       }
 
-      await placeOrder(payload);
+      const orderData = await placeOrder(payload);
       
-      toast.success("Order Placed Successfully! Thank you.");
-      
-      // Clear shopping bag locally and refresh cart state
-      await clearCart();
-      
-      navigate('/profile');
+      if (paymentMethod === 'COD') {
+        toast.success("Order Placed Successfully! Thank you.", { id: loadingToast });
+        await clearCart();
+        navigate('/profile');
+      } else {
+        toast.dismiss(loadingToast);
+        
+        const rpOrder = orderData.razorpayOrder;
+        if (!rpOrder) {
+          toast.error("Failed to initialize payment gateway.");
+          return;
+        }
+
+        const options = {
+          key: rpOrder.keyId,
+          amount: rpOrder.amount,
+          currency: rpOrder.currency,
+          name: "Stylee Fashion",
+          description: `Atelier Receipt - Order #${orderData.orderNumber}`,
+          order_id: rpOrder.id,
+          handler: async function (response) {
+            const verificationToast = toast.loading("Verifying your payment transaction...");
+            try {
+              await verifyOrderPayment({
+                orderId: orderData._id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+              
+              toast.success("Payment Verified! Your order is confirmed.", { id: verificationToast });
+              await clearCart();
+              navigate('/profile');
+            } catch (err) {
+              console.error("Signature verification failed:", err);
+              toast.error(err.message || "Payment verification failed.", { id: verificationToast });
+            }
+          },
+          prefill: {
+            name: activeAddress.fullName || user.name,
+            email: user.email,
+            contact: activeAddress.phone || user.phone || "",
+          },
+          theme: {
+            color: "#967bb6", // Premium lavender matching toast icon primary
+          },
+          modal: {
+            ondismiss: function () {
+              toast.error("Payment dismissed. Order is saved as pending.");
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      }
     } catch (err) {
+      toast.error(err.message || "Order placement failed.", { id: loadingToast });
       console.error("Order placement failed:", err.message);
     }
   };
@@ -274,7 +323,7 @@ export const Checkout = () => {
               </motion.div>
             )}
 
-            {/* STEP 2: Secure Payment Form */}
+            {/* STEP 2: Secure Payment Selector Form */}
             {step === 'payment' && (
               <motion.div
                 key="payment-step"
@@ -285,75 +334,76 @@ export const Checkout = () => {
               >
                 <form onSubmit={handlePaymentSubmit} className="flex flex-col gap-6">
                   
-                  {/* Premium mock credit card representation */}
-                  <div className="relative w-full max-w-sm aspect-[1.58/1] rounded-xl overflow-hidden bg-gradient-to-tr from-ink-dark via-[#6a5188]/80 to-[#967bb6] text-white p-6 shadow-xl flex flex-col justify-between border border-white/10 mx-auto">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.08),transparent)] pointer-events-none" />
-                    
-                    <div className="flex items-center justify-between z-10">
-                      <span className="font-heading font-light tracking-[0.25em] text-xs uppercase text-white/95">
-                        Lavender Premium Card
-                      </span>
-                      <IoLockClosedOutline size={16} className="text-white/60" />
+                  <Card padding="md" className="border border-outline-variant flex flex-col gap-6 max-w-lg mx-auto w-full">
+                    <div className="flex flex-col gap-1 border-b border-outline-variant/60 pb-3">
+                      <span className="font-heading font-semibold text-[9px] tracking-widest text-primary uppercase">Secure options</span>
+                      <h3 className="font-heading font-light text-lg tracking-wide text-ink">
+                        Select Payment Method
+                      </h3>
                     </div>
 
-                    <p className="font-sans font-light text-lg tracking-[0.2em] my-6 z-10 text-center">
-                      {cardNumber ? cardNumber.replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
-                    </p>
-
-                    <div className="flex justify-between items-end z-10">
-                      <div>
-                        <p className="text-[7px] font-heading tracking-widest text-white/60 uppercase">Card Holder</p>
-                        <p className="text-xs font-semibold uppercase tracking-wider">{cardName || 'YOUR FULL NAME'}</p>
+                    <div className="flex flex-col gap-4">
+                      
+                      {/* Option 1: Razorpay Pay Online */}
+                      <div 
+                        onClick={() => setPaymentMethod('ONLINE')}
+                        className={`p-5 border rounded-lg cursor-pointer transition-all flex items-start gap-4 ${
+                          paymentMethod === 'ONLINE'
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'border-outline-variant bg-surface-container-lowest hover:border-outline'
+                        }`}
+                      >
+                        <div className="mt-1 flex items-center justify-center">
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                            paymentMethod === 'ONLINE' ? 'border-primary' : 'border-outline'
+                          }`}>
+                            {paymentMethod === 'ONLINE' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                          </div>
+                        </div>
+                        <div className="flex-grow text-left">
+                          <p className="font-sans font-semibold text-xs text-ink flex items-center gap-2">
+                            Pay Securely Online 
+                            <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded font-heading font-bold uppercase tracking-wider">
+                              UPI / Cards / Netbanking
+                            </span>
+                          </p>
+                          <p className="font-sans text-[11px] text-secondary mt-1">
+                            Pay securely with Razorpay checkout. Supports UPI (Google Pay, PhonePe, Paytm), Credit/Debit cards, Netbanking, and Wallets.
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[7px] font-heading tracking-widest text-white/60 uppercase">Expires</p>
-                        <p className="text-xs font-semibold">{cardExpiry || 'MM/YY'}</p>
+
+                      {/* Option 2: Cash on Delivery */}
+                      <div 
+                        onClick={() => setPaymentMethod('COD')}
+                        className={`p-5 border rounded-lg cursor-pointer transition-all flex items-start gap-4 ${
+                          paymentMethod === 'COD'
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'border-outline-variant bg-surface-container-lowest hover:border-outline'
+                        }`}
+                      >
+                        <div className="mt-1 flex items-center justify-center">
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                            paymentMethod === 'COD' ? 'border-primary' : 'border-outline'
+                          }`}>
+                            {paymentMethod === 'COD' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                          </div>
+                        </div>
+                        <div className="flex-grow text-left">
+                          <p className="font-sans font-semibold text-xs text-ink">Cash on Delivery (COD)</p>
+                          <p className="font-sans text-[11px] text-secondary mt-1">
+                            Pay in cash or make instant digital transactions on delivery when your premium clothing is delivered.
+                          </p>
+                        </div>
                       </div>
+
                     </div>
-                  </div>
 
-                  {/* Form Details card */}
-                  <Card padding="md" className="border border-outline-variant flex flex-col gap-4 max-w-md mx-auto w-full">
-                    <h3 className="font-heading font-semibold text-xs tracking-widest uppercase text-ink mb-2">
-                      Secure Credit Card Details
-                    </h3>
-
-                    <Input
-                      label="Cardholder Name"
-                      placeholder="Vikas Chauhan"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      required
-                    />
-
-                    <Input
-                      label="Card Number"
-                      placeholder="1234567812345678"
-                      maxLength="16"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
-                      required
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        label="Expiry Date"
-                        placeholder="MM/YY"
-                        maxLength="5"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        required
-                      />
-                      <Input
-                        label="Security CVV"
-                        placeholder="123"
-                        maxLength="3"
-                        type="password"
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
-                        required
-                      />
+                    <div className="flex items-center justify-center gap-2 text-outline text-[10px] tracking-wider uppercase font-semibold border-t border-outline-variant/60 pt-4 mt-2">
+                      <IoShieldCheckmarkOutline size={14} className="text-primary" />
+                      <span>Razorpay Secured SSL Pipeline</span>
                     </div>
+
                   </Card>
 
                   {/* Actions buttons */}
@@ -404,7 +454,11 @@ export const Checkout = () => {
                   </h3>
                   <div className="font-sans text-xs flex items-center gap-3 text-emerald-700 mt-1">
                     <IoShieldCheckmarkOutline size={18} />
-                    <span>Card ending in {cardNumber.slice(-4)} verified successfully. Secure SSL active.</span>
+                    {paymentMethod === 'ONLINE' ? (
+                      <span>Secure online checkout via Razorpay active. Supports GPay, Netbanking, Cards, and UPI.</span>
+                    ) : (
+                      <span>Cash on Delivery active. Make payments on package arrival.</span>
+                    )}
                   </div>
                 </Card>
 
@@ -419,7 +473,7 @@ export const Checkout = () => {
                   </button>
                   
                   <Button onClick={handlePlaceOrder} variant="primary" className="py-3.5 px-8">
-                    Confirm & Place Order
+                    {paymentMethod === 'ONLINE' ? 'Pay & Place Order' : 'Confirm & Place Order'}
                   </Button>
                 </div>
 

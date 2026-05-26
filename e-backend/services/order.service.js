@@ -7,6 +7,14 @@ const emailService = require('./email.service');
 const ApiError = require('../utils/ApiError');
 const { calculatePricing } = require('../utils/pricing');
 const { getOrCreateCart, serializeCart } = require('./cart.service');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const env = require('../config/env');
+
+const razorpay = new Razorpay({
+  key_id: env.razorpayKeyId,
+  key_secret: env.razorpayKeySecret,
+});
 
 const makeOrderNumber = () => `ORD-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -101,26 +109,116 @@ const createOrderFromCart = async (userId, payload = {}) => {
 
   await reduceStock(cart.items);
 
-  const order = await Order.create({
-    orderNumber: makeOrderNumber(),
-    user: userId,
-    items: orderItems,
-    shippingAddress,
-    pricing,
-    payment: {
-      method: payload.paymentMethod || 'COD',
-      status: payload.paymentMethod === 'ONLINE' ? 'Paid' : 'Pending',
-    },
-  });
+  let order;
+  try {
+    order = await Order.create({
+      orderNumber: makeOrderNumber(),
+      user: userId,
+      items: orderItems,
+      shippingAddress,
+      pricing,
+      payment: {
+        method: payload.paymentMethod || 'COD',
+        status: 'Pending',
+      },
+    });
 
+    if (payload.paymentMethod === 'ONLINE') {
+      try {
+        const razorpayOrder = await razorpay.orders.create({
+          amount: Math.round(pricing.total * 100), // amount in paisa (sub-units)
+          currency: 'INR',
+          receipt: order._id.toString(),
+        });
+
+        order.payment.razorpayOrderId = razorpayOrder.id;
+        await order.save();
+
+        // Convert to plain object to attach razorpayOrder details dynamically
+        const orderObj = order.toObject();
+        orderObj.razorpayOrder = {
+          id: razorpayOrder.id,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency,
+          keyId: env.razorpayKeyId,
+        };
+        
+        // Return this plain object with razorpay details
+        order = orderObj;
+      } catch (rzpErr) {
+        console.error('Razorpay order initialization failed:', rzpErr);
+        // Rollback stock
+        for (const item of cart.items) {
+          await Product.updateOne(
+            { _id: item.product._id || item.product },
+            { $inc: { stock: item.quantity } }
+          );
+        }
+        // Cleanup draft order from DB
+        await Order.deleteOne({ _id: order._id });
+        throw new ApiError(522, 'Payment gateway failed to initialize. Please try again.');
+      }
+    }
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(500, err.message || 'Failed to place order');
+  }
+
+  // Clear shopping cart on successful placement/initialization
   await Cart.updateOne({ user: userId }, { $set: { items: [], couponCode: '' } });
 
-  // Fetch user and trigger order invoice in background asynchronously
-  User.findById(userId)
+  // Only trigger order confirmation email immediately for Cash on Delivery
+  if (payload.paymentMethod === 'COD') {
+    User.findById(userId)
+      .then((user) => {
+        if (user) {
+          emailService.sendOrderConfirmationEmail(user, order).catch((err) => {
+            console.error('Failed to send COD order confirmation email:', err);
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to look up user for order confirmation email:', err);
+      });
+  }
+
+  return order;
+};
+
+const verifyPayment = async ({ orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature }) => {
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  if (order.payment.status === 'Paid') {
+    return order; // Already processed
+  }
+
+  // Verify HMAC-SHA256 signature securely using the secret key
+  const generatedSignature = crypto
+    .createHmac('sha256', env.razorpayKeySecret)
+    .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+    .digest('hex');
+
+  if (generatedSignature !== razorpaySignature) {
+    order.payment.status = 'Failed';
+    await order.save();
+    throw new ApiError(400, 'Invalid payment signature. Verification failed.');
+  }
+
+  // Success: Update payment details and status
+  order.payment.status = 'Paid';
+  order.payment.razorpayPaymentId = razorpayPaymentId;
+  order.payment.razorpaySignature = razorpaySignature;
+  await order.save();
+
+  // Trigger invoice email asynchronously now that payment is confirmed
+  User.findById(order.user)
     .then((user) => {
       if (user) {
         emailService.sendOrderConfirmationEmail(user, order).catch((err) => {
-          console.error('Failed to send order confirmation email:', err);
+          console.error('Failed to send order confirmation email after verification:', err);
         });
       }
     })
@@ -138,5 +236,6 @@ const getCheckoutSummary = async (userId) => {
 
 module.exports = {
   createOrderFromCart,
+  verifyPayment,
   getCheckoutSummary,
 };

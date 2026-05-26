@@ -174,6 +174,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const verifyOrderPayment = async (verificationPayload) => {
+    try {
+      const data = await api.post('/orders/verify', verificationPayload);
+      await fetchOrders();
+      return data.order;
+    } catch (err) {
+      toast.error(err.message || 'Failed to verify payment.');
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user: user ? {
@@ -192,6 +203,7 @@ export const AuthProvider = ({ children }) => {
       addAddress,
       deleteAddress,
       placeOrder,
+      verifyOrderPayment,
       refreshAddresses: fetchAddresses,
       refreshOrders: fetchOrders
     }}>

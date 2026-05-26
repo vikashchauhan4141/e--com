@@ -2,7 +2,7 @@ const Order = require('../models/order.model');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const asyncHandler = require('../utils/asyncHandler');
-const { createOrderFromCart } = require('../services/order.service');
+const { createOrderFromCart, verifyPayment } = require('../services/order.service');
 
 const createOrder = asyncHandler(async (req, res) => {
   const order = await createOrderFromCart(req.user._id, req.body);
@@ -56,8 +56,28 @@ const getOrderById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { order }, 'Order fetched successfully'));
 });
 
+const verifyOrderPayment = asyncHandler(async (req, res) => {
+  const { orderId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+
+  if (!orderId || !razorpayPaymentId || !razorpayOrderId || !razorpaySignature) {
+    throw new ApiError(400, 'Missing required transaction credentials for verification');
+  }
+
+  const order = await verifyPayment({
+    orderId,
+    razorpayPaymentId,
+    razorpayOrderId,
+    razorpaySignature,
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, { order }, 'Payment signature verified successfully'));
+});
+
 module.exports = {
   createOrder,
   getMyOrders,
   getOrderById,
+  verifyOrderPayment,
 };
