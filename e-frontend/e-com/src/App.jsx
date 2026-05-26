@@ -27,6 +27,7 @@ const Login = React.lazy(() => import('./pages/Login').then(m => ({ default: m.L
 const Register = React.lazy(() => import('./pages/Register').then(m => ({ default: m.Register })));
 const Profile = React.lazy(() => import('./pages/Profile').then(m => ({ default: m.Profile })));
 const Contact = React.lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const About = React.lazy(() => import('./pages/About').then(m => ({ default: m.About })));
 const NotFound = React.lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const ResetPassword = React.lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
@@ -83,6 +84,7 @@ const AppContent = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<About />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             

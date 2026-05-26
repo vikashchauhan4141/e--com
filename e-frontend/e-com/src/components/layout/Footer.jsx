@@ -52,7 +52,7 @@ export const Footer = () => {
           <h4 className="font-heading font-semibold text-[10px] tracking-widest uppercase text-white mb-6">Boutique</h4>
           <ul className="flex flex-col gap-3 text-xs font-sans">
             <li>
-              <Link to="/shop" className="text-secondary-container hover:text-white transition-colors">Our Atelier</Link>
+              <Link to="/about" className="text-secondary-container hover:text-white transition-colors">About Atelier</Link>
             </li>
             <li>
               <span className="text-secondary-container hover:text-white transition-colors cursor-pointer">Craftsmanship</span>
