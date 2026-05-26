@@ -264,6 +264,37 @@ const reinitiatePayment = async (orderId, userId) => {
   };
 };
 
+const cancelOrder = async (orderId, userId) => {
+  const order = await Order.findOne({ _id: orderId, user: userId });
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  if (order.status === 'Cancelled') {
+    throw new ApiError(400, 'Order is already cancelled');
+  }
+
+  if (order.status === 'Shipped' || order.status === 'Delivered') {
+    throw new ApiError(400, 'Cannot cancel order after it has been shipped or delivered');
+  }
+
+  // Restore inventory stock for all products in this order
+  for (const item of order.items) {
+    await Product.updateOne(
+      { _id: item.product },
+      { $inc: { stock: item.quantity } }
+    );
+  }
+
+  order.status = 'Cancelled';
+  if (order.payment.status === 'Pending') {
+    order.payment.status = 'Failed';
+  }
+  await order.save();
+
+  return order;
+};
+
 const getCheckoutSummary = async (userId) => {
   const cart = await getOrCreateCart(userId);
   return serializeCart(cart);
@@ -273,5 +304,6 @@ module.exports = {
   createOrderFromCart,
   verifyPayment,
   reinitiatePayment,
+  cancelOrder,
   getCheckoutSummary,
 };

@@ -2,7 +2,7 @@ const Order = require('../models/order.model');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const asyncHandler = require('../utils/asyncHandler');
-const { createOrderFromCart, verifyPayment, reinitiatePayment } = require('../services/order.service');
+const { createOrderFromCart, verifyPayment, reinitiatePayment, cancelOrder } = require('../services/order.service');
 
 const createOrder = asyncHandler(async (req, res) => {
   const order = await createOrderFromCart(req.user._id, req.body);
@@ -84,10 +84,34 @@ const retryOrderPayment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, paymentDetails, 'Payment re-initialized successfully'));
 });
 
+const cancelUserOrder = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const order = await cancelOrder(id, req.user._id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, { order }, 'Order cancelled successfully and stock restored'));
+});
+
+const deleteUserOrder = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const order = await Order.findOneAndDelete({ _id: id, user: req.user._id });
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, 'Order removed from history successfully'));
+});
+
 module.exports = {
   createOrder,
   getMyOrders,
   getOrderById,
   verifyOrderPayment,
   retryOrderPayment,
+  cancelUserOrder,
+  deleteUserOrder,
 };

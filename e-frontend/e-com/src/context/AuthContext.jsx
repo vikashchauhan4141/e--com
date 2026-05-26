@@ -198,6 +198,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const cancelOrderAction = async (orderId) => {
+    const loadingToast = toast.loading("Processing order cancellation...");
+    try {
+      const data = await api.post(`/orders/${orderId}/cancel`);
+      await fetchOrders();
+      toast.success("Order cancelled and inventory stock restored!", { id: loadingToast });
+      return data.order;
+    } catch (err) {
+      toast.error(err.message || "Failed to cancel order.", { id: loadingToast });
+      throw err;
+    }
+  };
+
+  const deleteOrderAction = async (orderId) => {
+    const loadingToast = toast.loading("Removing order from history...");
+    try {
+      await api.delete(`/orders/${orderId}`);
+      await fetchOrders();
+      toast.success("Order removed from history!", { id: loadingToast });
+    } catch (err) {
+      toast.error(err.message || "Failed to remove order.", { id: loadingToast });
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user: user ? {
@@ -218,6 +243,8 @@ export const AuthProvider = ({ children }) => {
       placeOrder,
       verifyOrderPayment,
       retryOrderPayment,
+      cancelOrder: cancelOrderAction,
+      deleteOrder: deleteOrderAction,
       refreshAddresses: fetchAddresses,
       refreshOrders: fetchOrders
     }}>

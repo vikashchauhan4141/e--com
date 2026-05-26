@@ -10,7 +10,7 @@ import { api } from '../utils/api';
 import toast from 'react-hot-toast';
 
 export const Profile = () => {
-  const { user, isAuthenticated, addresses, orders, updateProfile, updateAvatar, addAddress, deleteAddress, retryOrderPayment, verifyOrderPayment } = useContext(AuthContext);
+  const { user, isAuthenticated, addresses, orders, updateProfile, updateAvatar, addAddress, deleteAddress, retryOrderPayment, verifyOrderPayment, cancelOrder, deleteOrder } = useContext(AuthContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('orders');
   
@@ -201,6 +201,28 @@ export const Profile = () => {
     }
   };
 
+  const handleCancelOrder = async (order) => {
+    const confirmCancel = window.confirm(`Are you sure you want to cancel Order #${order.id}? This will restore the products back to our boutique stock.`);
+    if (!confirmCancel) return;
+
+    try {
+      await cancelOrder(order.dbId);
+    } catch (err) {
+      console.error("Order cancellation failed:", err);
+    }
+  };
+
+  const handleDeleteOrder = async (order) => {
+    const confirmDelete = window.confirm(`Are you sure you want to remove Order #${order.id} from your history permanently? This will delete it from our servers.`);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteOrder(order.dbId);
+    } catch (err) {
+      console.error("Order deletion failed:", err);
+    }
+  };
+
   return (
     <div className="max-w-container mx-auto px-6 lg:px-16 mt-6 min-h-screen">
       
@@ -262,8 +284,17 @@ export const Profile = () => {
               ) : (
                 <div className="flex flex-col gap-6">
                   {orders.map((order) => (
-                    <Card key={order.id} padding="md" className="border border-outline-variant">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-outline-variant/60 pb-4 mb-4 gap-2">
+                    <Card key={order.id} padding="md" className="border border-outline-variant relative">
+                      {/* Trash / Delete button in top-right corner */}
+                      <button
+                        onClick={() => handleDeleteOrder(order)}
+                        className="absolute top-4 right-4 text-secondary hover:text-error transition-colors p-1"
+                        title="Remove Order from History"
+                      >
+                        <IoTrashOutline size={16} />
+                      </button>
+
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-outline-variant/60 pb-4 mb-4 gap-2 pr-6">
                         <div>
                           <p className="font-heading font-bold text-xs tracking-wider text-primary">{order.id}</p>
                           <p className="text-[10px] font-sans text-secondary mt-0.5">Placed on {order.date}</p>
@@ -292,6 +323,16 @@ export const Profile = () => {
                               className="px-3 py-1 bg-primary text-white text-[9px] font-heading font-bold uppercase tracking-wider rounded shadow hover:bg-primary/95 transition-all duration-150 cursor-pointer"
                             >
                               Pay Now
+                            </button>
+                          )}
+
+                          {/* Cancel Order Button */}
+                          {order.status === 'Processing' && (
+                            <button
+                              onClick={() => handleCancelOrder(order)}
+                              className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 text-[9px] font-heading font-bold uppercase tracking-wider rounded shadow-sm hover:bg-red-100 transition-all duration-150 cursor-pointer"
+                            >
+                              Cancel Order
                             </button>
                           )}
                         </div>
