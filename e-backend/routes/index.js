@@ -10,6 +10,7 @@ const checkoutRoutes = require('./checkout.routes');
 const orderRoutes = require('./order.routes');
 const adminRoutes = require('./admin.routes');
 const uploadRoutes = require('./upload.routes');
+const couponRoutes = require('./coupon.routes');
 const ApiResponse = require('../utils/ApiResponse');
 
 const router = express.Router();
@@ -38,5 +39,6 @@ router.use('/checkout', checkoutRoutes);
 router.use('/orders', orderRoutes);
 router.use('/admin/upload', uploadRoutes);
 router.use('/admin', adminRoutes);
+router.use('/coupons', couponRoutes);
 
 module.exports = router;

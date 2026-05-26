@@ -302,12 +302,10 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // @route   DELETE /api/admin/orders/:id
 // @access  Private/Admin
 const deleteOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findByIdAndDelete(req.params.id);
   if (!order) {
     throw new ApiError(404, 'Order not found');
   }
-
-  await Order.findByIdAndDelete(req.params.id);
 
   res
     .status(200)
@@ -420,12 +418,10 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Self-deletion or de-registering your own console session is blocked');
   }
 
-  const user = await User.findById(req.params.id);
+  const user = await User.findByIdAndDelete(req.params.id);
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
-
-  await User.findByIdAndDelete(req.params.id);
 
   res
     .status(200)
@@ -516,8 +512,10 @@ const updateCategoryAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Category not found');
   }
 
+  const oldName = category.name;
+
   if (name !== undefined) {
-    if (name.toLowerCase() !== category.name.toLowerCase()) {
+    if (name.toLowerCase() !== oldName.toLowerCase()) {
       const existingCategory = await Category.findOne({ name: new RegExp(`^${name}$`, 'i') });
       if (existingCategory) {
         throw new ApiError(400, 'Category with this name already exists');
@@ -532,6 +530,14 @@ const updateCategoryAdmin = asyncHandler(async (req, res) => {
   if (isActive !== undefined) category.isActive = isActive;
 
   await category.save();
+
+  // Keep product denormalized categoryName in sync after a rename
+  if (name !== undefined && name.toLowerCase() !== oldName.toLowerCase()) {
+    await Product.updateMany(
+      { category: category._id },
+      { $set: { categoryName: category.name } }
+    );
+  }
 
   res.status(200).json(
     new ApiResponse(200, { category }, 'Category updated successfully')

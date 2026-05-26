@@ -5,14 +5,35 @@ const orderItemSchema = new mongoose.Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
-      required: true,
+      required: [true, 'Product reference is required'],
     },
-    name: String,
-    image: String,
-    size: String,
-    color: String,
-    quantity: Number,
-    price: Number,
+    name: {
+      type: String,
+      required: [true, 'Item name is required'],
+      trim: true,
+    },
+    image: {
+      type: String,
+      default: '',
+    },
+    size: {
+      type: String,
+      required: [true, 'Item size is required'],
+    },
+    color: {
+      type: String,
+      required: [true, 'Item color is required'],
+    },
+    quantity: {
+      type: Number,
+      required: [true, 'Item quantity is required'],
+      min: [1, 'Quantity must be at least 1'],
+    },
+    price: {
+      type: Number,
+      required: [true, 'Item price is required'],
+      min: [0, 'Price cannot be negative'],
+    },
   },
   { _id: false }
 );

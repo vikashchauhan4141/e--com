@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { api } from '../utils/api';
+import { DEFAULT_AVATAR } from '../utils/constants';
 import toast from 'react-hot-toast';
 
 export const AuthContext = createContext();
@@ -177,7 +178,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       user: user ? {
         ...user,
-        avatar: user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+        avatar: user.avatar || DEFAULT_AVATAR
       } : null,
       isAuthenticated: !!user,
       addresses,

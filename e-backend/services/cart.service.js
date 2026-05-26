@@ -3,6 +3,7 @@ const Product = require('../models/product.model');
 const ApiError = require('../utils/ApiError');
 const { calculatePricing, normalizeCoupon } = require('../utils/pricing');
 const { findProductByAnyId } = require('./product.service');
+const { VALID_COUPON_CODES } = require('../config/coupons');
 
 const cartPopulate = {
   path: 'items.product',
@@ -156,7 +157,7 @@ const clearCart = async (userId) => {
 const applyCoupon = async (userId, couponCode) => {
   const code = normalizeCoupon(couponCode);
 
-  if (!['STYLEE10', 'LAVENDER10', 'AURA10', 'FREESHIP'].includes(code)) {
+  if (!VALID_COUPON_CODES.includes(code)) {
     throw new ApiError(400, 'Invalid promo code');
   }
 

@@ -23,6 +23,10 @@ const protect = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, 'User linked to this token no longer exists');
   }
 
+  if (!user.isActive) {
+    throw new ApiError(403, 'This account has been deactivated');
+  }
+
   req.user = user;
   next();
 });

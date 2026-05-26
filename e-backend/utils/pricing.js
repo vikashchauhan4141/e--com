@@ -1,41 +1,37 @@
+const { findCoupon } = require('../config/coupons');
+
 const FREE_SHIPPING_MINIMUM = 5000;
 const STANDARD_SHIPPING = 150;
 
+/** Normalizes a raw coupon string to match stored keys. */
 const normalizeCoupon = (code = '') => code.trim().toUpperCase();
 
+/**
+ * Resolves discount details for a given subtotal + coupon code.
+ * Uses the centralized coupons config — no hardcoded lists here.
+ */
 const getCouponDiscount = (subtotal, couponCode) => {
-  const code = normalizeCoupon(couponCode);
+  const coupon = findCoupon(couponCode);
 
-  if (['STYLEE10', 'LAVENDER10', 'AURA10'].includes(code)) {
-    return {
-      code,
-      discount: Math.round(subtotal * 0.1),
-      discountPercent: 10,
-      freeShipping: false,
-    };
-  }
-
-  if (code === 'FREESHIP') {
-    return {
-      code,
-      discount: 0,
-      discountPercent: 0,
-      freeShipping: true,
-    };
+  if (!coupon) {
+    return { code: '', discount: 0, discountPercent: 0, freeShipping: false };
   }
 
   return {
-    code: '',
-    discount: 0,
-    discountPercent: 0,
-    freeShipping: false,
+    code: coupon.code,
+    discount: coupon.discountPercent > 0 ? Math.round(subtotal * coupon.discountPercent / 100) : 0,
+    discountPercent: coupon.discountPercent,
+    freeShipping: coupon.freeShipping,
   };
 };
 
+/**
+ * Calculates full order pricing from cart items and an optional coupon.
+ * @param {Array<{priceSnapshot: number, quantity: number}>} items
+ * @param {string} couponCode
+ */
 const calculatePricing = (items, couponCode = '') => {
-  const subtotal = items.reduce((sum, item) => {
-    return sum + item.priceSnapshot * item.quantity;
-  }, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.priceSnapshot * item.quantity, 0);
 
   const coupon = getCouponDiscount(subtotal, couponCode);
   const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_MINIMUM || coupon.freeShipping
@@ -55,4 +51,6 @@ const calculatePricing = (items, couponCode = '') => {
 module.exports = {
   calculatePricing,
   normalizeCoupon,
+  FREE_SHIPPING_MINIMUM,
+  STANDARD_SHIPPING,
 };
