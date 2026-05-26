@@ -19,7 +19,28 @@ const getProducts = asyncHandler(async (req, res) => {
 
   const filter = { isActive: true };
 
-  if (category) filter.categoryName = new RegExp(`^${category}$`, 'i');
+  if (category) {
+    if (category.match(/^[0-9a-fA-F]{24}$/)) {
+      filter.category = category;
+    } else {
+      const Category = require('../models/category.model');
+      const catDoc = await Category.findOne({
+        $or: [
+          { name: new RegExp(`^${category}$`, 'i') },
+          { slug: new RegExp(`^${category}$`, 'i') }
+        ]
+      });
+      
+      if (catDoc) {
+        filter.$or = [
+          { category: catDoc._id },
+          { categoryName: catDoc.name }
+        ];
+      } else {
+        filter.categoryName = new RegExp(`^${category}$`, 'i');
+      }
+    }
+  }
   if (gender) filter.gender = gender;
   if (size) filter.sizes = size;
   if (color) filter.colors = color;
@@ -35,7 +56,12 @@ const getProducts = asyncHandler(async (req, res) => {
   }
 
   if (search) {
-    filter.$text = { $search: search };
+    const cleanSearch = search.trim();
+    filter.$or = [
+      { name: new RegExp(cleanSearch, 'i') },
+      { categoryName: new RegExp(cleanSearch, 'i') },
+      { description: new RegExp(cleanSearch, 'i') }
+    ];
   }
 
   const sortMap = {

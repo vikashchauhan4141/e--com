@@ -10,7 +10,7 @@ export const products = [
     "stock": 18,
     "sizes": ["S", "M", "L"],
     "colors": ["White", "Lavender"],
-    "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=800&q=80",
     "description": "Premium oversized white cotton t-shirt with soft luxury fabric. A staple of relaxed luxury and understated fashion."
   },
   {
@@ -52,7 +52,7 @@ export const products = [
     "stock": 25,
     "sizes": ["S", "M", "L"],
     "colors": ["Sand", "Lavender", "White"],
-    "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80",
     "description": "Supremely soft organic cotton ribbed knit set. Includes relaxed wide-leg trousers and a coordinating dropped shoulder crewneck."
   },
   {
@@ -66,7 +66,7 @@ export const products = [
     "stock": 20,
     "sizes": ["M", "L", "XL"],
     "colors": ["White", "Sand"],
-    "image": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&w=800&q=80",
     "description": "Breathable 100% Belgian flax linen relaxed camp-collar shirt. Perfect for high-temperature destinations."
   },
   {
@@ -80,7 +80,7 @@ export const products = [
     "stock": 15,
     "sizes": ["One Size"],
     "colors": ["Gold"],
-    "image": "https://images.unsplash.com/photo-1509319117193-57bab727e09d?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
     "description": "Solid 18k gold vermeil delicate chain featuring a hand-hammered organic circular pendant. Perfect for layering."
   },
   {
@@ -94,7 +94,7 @@ export const products = [
     "stock": 40,
     "sizes": ["One Size"],
     "colors": ["Lavender", "Black", "White"],
-    "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=800&q=80",
     "description": "Double-faced silk satin ribbon designed to tie elegantly. Adds a subtle feminine touch of quiet luxury."
   },
   {
@@ -108,7 +108,7 @@ export const products = [
     "stock": 14,
     "sizes": ["S", "M", "L"],
     "colors": ["Lavender", "Sand"],
-    "image": "https://images.unsplash.com/photo-1574169208507-84376144848b?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80",
     "description": "Hand-knit heavy wool chunky cardigan in soft lilac. Ribbed cuffs, statement tort buttons, slightly cropped profile."
   },
   {
@@ -122,7 +122,7 @@ export const products = [
     "stock": 22,
     "sizes": ["XS", "S", "M", "L"],
     "colors": ["Charcoal", "Sand", "Lavender"],
-    "image": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1608234807905-4465857f9c01?auto=format&fit=crop&w=800&q=80",
     "description": "Form-fitting ribbed mock neck sweater. Knit from long-staple cotton and fine silk for a second-skin feel."
   },
   {
@@ -136,7 +136,7 @@ export const products = [
     "stock": 16,
     "sizes": ["S", "M", "L"],
     "colors": ["Sand", "Black"],
-    "image": "https://images.unsplash.com/photo-1583496661160-fb488b2c1a82?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80",
     "description": "Accordion pleated midi skirt with structured waistband. High-contrast movement, beautiful matte fabric."
   },
   {
@@ -150,7 +150,7 @@ export const products = [
     "stock": 10,
     "sizes": ["One Size"],
     "colors": ["Sand", "Black"],
-    "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
     "description": "Heavyweight organic cotton canvas utility bag with premium leather straps and brass zippers. Spacious lined interior."
   },
   {
@@ -164,7 +164,7 @@ export const products = [
     "stock": 30,
     "sizes": ["S", "M", "L"],
     "colors": ["Black", "Sand"],
-    "image": "https://images.unsplash.com/photo-1624224971170-2f84fed5eb5e?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1614179924047-e1ab4e8cc9fc?auto=format&fit=crop&w=800&q=80",
     "description": "Soft vegan leather wrap belt designed to cinch dresses, shirts, or cardigans for an architectural silhouette."
   },
   {
@@ -178,7 +178,7 @@ export const products = [
     "stock": 12,
     "sizes": ["S", "M", "L"],
     "colors": ["Sand", "White"],
-    "image": "https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
     "description": "Unstructured single-breasted blazer in pure linen. Soft drape shoulders, natural texture, comfortable inner lining."
   },
   {
@@ -192,7 +192,7 @@ export const products = [
     "stock": 15,
     "sizes": ["S", "M", "L", "XL"],
     "colors": ["Blue", "Black"],
-    "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1611312449412-6cefac5dc3e4?auto=format&fit=crop&w=800&q=80",
     "description": "Classic wash structured denim jacket with an intentional vintage oversized fit. Heavy metal shank buttons."
   },
   {
@@ -220,7 +220,7 @@ export const products = [
     "stock": 25,
     "sizes": ["S", "M", "L"],
     "colors": ["Lavender", "White"],
-    "image": "https://images.unsplash.com/photo-1562572159-4ebcd318f4dd?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1631541909061-7fc314f73396?auto=format&fit=crop&w=800&q=80",
     "description": "Lightweight modal-satin coordinate sleepwear set. Elegant contrast piping on cuffs, pocket, and collar."
   },
   {

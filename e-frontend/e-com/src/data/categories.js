@@ -10,7 +10,7 @@ export const categories = [
     id: 2,
     name: "T-Shirts",
     slug: "t-shirts",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=600&q=80",
     description: "Ultra-soft luxury cotton tees engineered for effortless luxury."
   },
   {
@@ -24,14 +24,14 @@ export const categories = [
     id: 4,
     name: "Loungewear",
     slug: "loungewear",
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80",
     description: "Premium knits and relaxed coordinates designed for the home."
   },
   {
     id: 5,
     name: "Accessories",
     slug: "accessories",
-    image: "https://images.unsplash.com/photo-1509319117193-57bab727e09d?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80",
     description: "Curated accents to elevate and complete your Stylee statement."
   }
 ];

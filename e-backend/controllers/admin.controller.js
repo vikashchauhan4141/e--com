@@ -73,7 +73,28 @@ const getProducts = asyncHandler(async (req, res) => {
   const { search, category, gender, page = 1, limit = 50 } = req.query;
   const filter = {};
 
-  if (category) filter.categoryName = new RegExp(`^${category}$`, 'i');
+  if (category) {
+    if (category.match(/^[0-9a-fA-F]{24}$/)) {
+      filter.category = category;
+    } else {
+      const Category = require('../models/category.model');
+      const catDoc = await Category.findOne({
+        $or: [
+          { name: new RegExp(`^${category}$`, 'i') },
+          { slug: new RegExp(`^${category}$`, 'i') }
+        ]
+      });
+      
+      if (catDoc) {
+        filter.$or = [
+          { category: catDoc._id },
+          { categoryName: catDoc.name }
+        ];
+      } else {
+        filter.categoryName = new RegExp(`^${category}$`, 'i');
+      }
+    }
+  }
   if (gender) filter.gender = gender;
   if (search) {
     filter.$or = [
