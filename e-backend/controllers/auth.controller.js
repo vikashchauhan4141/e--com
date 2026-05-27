@@ -96,29 +96,29 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email: email.trim().toLowerCase() });
 
-  // NOTE: We respond with the same 200 message whether or not the email exists.
-  // This prevents user enumeration attacks (OWASP A07).
-  if (user) {
-    // 1. Generate secure random token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-
-    // 2. Hash token and save to DB with 10-minute expiry
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.passwordResetToken = hashedToken;
-    user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-
-    await user.save({ validateBeforeSave: false });
-
-    // 3. Construct reset URL
-    const resetUrl = `${env.clientUrl}/reset-password/${resetToken}`;
-
-    // 4. Send transactional email (fire and forget)
-    emailService.sendPasswordResetEmail(user, resetUrl).catch((err) => {
-      console.error('Failed to send password reset email:', err);
-    });
+  if (!user) {
+    throw new ApiError(404, 'User not found with this email');
   }
 
-  res.status(200).json(new ApiResponse(200, null, 'If an account with this email exists, a password reset link has been sent.'));
+  // 1. Generate secure random token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // 2. Hash token and save to DB with 10-minute expiry
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  await user.save({ validateBeforeSave: false });
+
+  // 3. Construct reset URL
+  const resetUrl = `${env.clientUrl}/reset-password/${resetToken}`;
+
+  // 4. Send transactional email (fire and forget)
+  emailService.sendPasswordResetEmail(user, resetUrl).catch((err) => {
+    console.error('Failed to send password reset email:', err);
+  });
+
+  res.status(200).json(new ApiResponse(200, null, 'Password reset link has been sent to your email.'));
 });
 
 const resetPassword = asyncHandler(async (req, res) => {

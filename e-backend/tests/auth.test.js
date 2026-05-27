@@ -3,6 +3,13 @@ const mongoose = require('mongoose');
 const app = require('../app');
 const User = require('../models/user.model');
 
+// Mock email service to prevent real email sending and async logging issues during tests
+jest.mock('../services/email.service', () => ({
+  sendWelcomeEmail: jest.fn().mockResolvedValue({ success: true }),
+  sendPasswordResetEmail: jest.fn().mockResolvedValue({ success: true }),
+  sendOrderConfirmationEmail: jest.fn().mockResolvedValue({ success: true }),
+}));
+
 describe('Auth Integration Tests', () => {
   beforeAll(async () => {
     // Connect to isolated test database
