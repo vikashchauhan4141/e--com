@@ -122,7 +122,7 @@ export const products = [
     "stock": 22,
     "sizes": ["XS", "S", "M", "L"],
     "colors": ["Charcoal", "Sand", "Lavender"],
-    "image": "https://images.unsplash.com/photo-1608234807905-4465857f9c01?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1574164904299-3a102b110380?auto=format&fit=crop&w=800&q=80",
     "description": "Form-fitting ribbed mock neck sweater. Knit from long-staple cotton and fine silk for a second-skin feel."
   },
   {
@@ -164,7 +164,7 @@ export const products = [
     "stock": 30,
     "sizes": ["S", "M", "L"],
     "colors": ["Black", "Sand"],
-    "image": "https://images.unsplash.com/photo-1614179924047-e1ab4e8cc9fc?auto=format&fit=crop&w=800&q=80",
+    "image": "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=800&q=80",
     "description": "Soft vegan leather wrap belt designed to cinch dresses, shirts, or cardigans for an architectural silhouette."
   },
   {

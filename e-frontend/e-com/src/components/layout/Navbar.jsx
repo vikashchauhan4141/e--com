@@ -37,7 +37,6 @@ export const Navbar = () => {
     { name: 'Shop', path: '/shop' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
-    { name: 'Wishlist', path: '/wishlist' },
   ];
 
   return (
@@ -76,9 +75,9 @@ export const Navbar = () => {
           ))}
         </nav>
 
-        {/* Actions (Search, Wishlist, Cart, Profile) */}
+        {/* Actions (Wishlist icon, Cart, Profile) */}
         <div className="flex items-center gap-4 md:gap-6">
-          {/* Wishlist */}
+          {/* Wishlist Icon */}
           <Link to="/wishlist" className="relative text-secondary hover:text-primary transition-colors p-1.5">
             <IoHeartOutline size={20} />
             {wishlistItems.length > 0 && (
