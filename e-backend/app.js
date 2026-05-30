@@ -14,7 +14,30 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, postman, curl)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        env.clientUrl,
+        'http://localhost:5173',
+        'http://localhost:3000'
+      ];
+
+      // Remove trailing slash for strict matching comparison
+      const cleanOrigin = origin.replace(/\/$/, '');
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (!allowed) return false;
+        return allowed.trim().replace(/\/$/, '') === cleanOrigin;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`CORS Blocked Origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
