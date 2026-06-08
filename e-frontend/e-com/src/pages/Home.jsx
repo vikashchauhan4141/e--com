@@ -6,6 +6,7 @@ import { api } from '../utils/api';
 import { CategoryCard } from '../components/shared/CategoryCard';
 import { ProductCard } from '../components/shared/ProductCard';
 import { Button } from '../components/ui/Button';
+import { CategoryCardSkeleton, ProductCardSkeleton } from '../components/ui/Skeleton';
 
 const HERO_SLIDES = [
   {
@@ -182,9 +183,11 @@ export const Home = () => {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categoriesList.slice(0, 4).map((cat) => (
-            <CategoryCard key={cat.id || cat._id} category={cat} />
-          ))}
+          {isLoading
+            ? [...Array(4)].map((_, i) => <CategoryCardSkeleton key={i} />)
+            : categoriesList.slice(0, 4).map((cat) => (
+                <CategoryCard key={cat.id || cat._id} category={cat} />
+              ))}
         </div>
       </section>
 
@@ -201,9 +204,11 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-          {trendingProducts.map((prod) => (
-            <ProductCard key={prod.id} product={prod} />
-          ))}
+          {isLoading
+            ? [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+            : trendingProducts.map((prod) => (
+                <ProductCard key={prod.id} product={prod} />
+              ))}
         </div>
       </section>
 

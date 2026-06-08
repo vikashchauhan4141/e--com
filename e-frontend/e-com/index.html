@@ -15,8 +15,46 @@
     <!-- Defer heavy non-critical integration scripts -->
     <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   </head>
+  <style>
+    /* Prevent initial white flash by setting the background color before React loads */
+    body {
+      background-color: #faf9f7; /* Matching tailwind bg-background */
+      margin: 0;
+    }
+    #initial-loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Inter', sans-serif;
+    }
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #967bb6; /* Matching tailwind primary */
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loading-text {
+      margin-top: 12px;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #7d7d7d; /* Matching secondary text */
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+  </style>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="initial-loader">
+        <div class="spinner"></div>
+        <span class="loading-text">Entering Atelier...</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -16,6 +16,18 @@ export const Skeleton = ({
   );
 };
 
+export const CategoryCardSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-4">
+      <Skeleton className="w-full aspect-[4/5] rounded-none" />
+      <div className="flex flex-col items-center gap-2">
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+    </div>
+  );
+};
+
 export const ProductCardSkeleton = () => {
   return (
     <div className="flex flex-col gap-3 w-full">
