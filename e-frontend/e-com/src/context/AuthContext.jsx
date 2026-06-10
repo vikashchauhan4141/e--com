@@ -248,7 +248,7 @@ export const AuthProvider = ({ children }) => {
       refreshAddresses: fetchAddresses,
       refreshOrders: fetchOrders
     }}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
