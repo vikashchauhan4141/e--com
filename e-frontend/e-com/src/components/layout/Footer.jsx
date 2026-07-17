@@ -1,6 +1,8 @@
 import React from 'react';
+// Brand constants for easy reuse by agents and developers
+import { brand } from '../../constants/brand';
 import { Link } from 'react-router-dom';
-import { IoLogoInstagram, IoLogoPinterest, IoLogoFacebook } from 'react-icons/io5';
+import logo from '../../assets/stylee_atelier_icon.png';
 
 export const Footer = () => {
   return (
@@ -9,8 +11,9 @@ export const Footer = () => {
         
         {/* Brand column */}
         <div className="flex flex-col gap-4">
-          <Link to="/" className="font-heading font-light text-base tracking-[0.2em] uppercase text-white">
-            Stylee <span className="font-semibold text-primary-accent">Atelier</span>
+          <Link to="/" className="flex items-center space-x-2 font-heading font-light text-base tracking-[0.2em] uppercase text-white">
+            <img src={logo} alt="Stylee Atelier" className="h-6 w-auto" />
+            {brand.name} <span className="font-semibold text-primary-accent">{brand.suffix}</span>
           </Link>
           <p className="text-xs text-secondary-container leading-relaxed font-sans max-w-xs mt-2">
             A digital atelier rooted in quiet luxury, modern minimalism, and breathing white space. Curated coordinates for a discerning audience.

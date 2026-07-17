@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
+// Brand information is defined in src/constants/brand.js for easy reference by agents and developers
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { IoBagOutline, IoHeartOutline, IoPersonOutline, IoClose, IoMenu } from 'react-icons/io5';
-import { Menu, Transition } from '@headlessui/react';
+import { brand } from '../../constants/brand';
+import logo from '../../assets/stylee_atelier_icon.png';
 import { CartContext } from '../../context/CartContext';
 import { WishlistContext } from '../../context/WishlistContext';
 import { AuthContext } from '../../context/AuthContext';
@@ -54,9 +56,10 @@ export const Navbar = () => {
           <IoMenu size={24} />
         </button>
 
-        {/* Brand Logo - Montserrat editorial */}
-        <Link to="/" className="font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
-          Stylee <span className="font-semibold text-primary">Atelier</span>
+        {/* Brand Logo - icon + text */}
+        <Link to="/" className="flex items-center space-x-2 font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
+          <img src={logo} alt="Stylee Atelier" className="h-8 w-auto" />
+          <span>{brand.name} <span className="font-semibold text-primary">{brand.suffix}</span></span>
         </Link>
 
         {/* Nav Links - Inter Caps 10% spacing */}
@@ -196,8 +199,9 @@ export const Navbar = () => {
           
           <div className="relative w-full max-w-xs bg-surface-container-lowest h-full shadow-xl flex flex-col p-6 z-10 transition-transform duration-300">
             <div className="flex items-center justify-between border-b border-outline-variant pb-6 mb-8">
-              <Link to="/" className="font-heading font-light text-sm tracking-[0.2em] uppercase text-ink">
-                Stylee <span className="font-semibold text-primary">Atelier</span>
+              {/* Brand Logo - defined via brand constants */}
+              <Link to="/" className="font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
+                {brand.name} <span className="font-semibold text-primary">{brand.suffix}</span>
               </Link>
               <button 
                 onClick={() => setMobileMenuOpen(false)}
