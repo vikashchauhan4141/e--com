@@ -12,7 +12,7 @@ const ensureAdminUser = async () => {
     if (existingAdmin) {
       console.log(`Admin user already exists: ${existingAdmin.name} (${existingAdmin.email})`);
       
-      // If for some reason the role is not admin, update it
+      // If for some reason the role is adminnot admin, update it
       if (existingAdmin.role !== 'admin') {
         existingAdmin.role = 'admin';
         await existingAdmin.save();
