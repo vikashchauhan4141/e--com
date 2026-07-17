@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-// Brand information is defined in src/constants/brand.js for easy reference by agents and developers
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { IoBagOutline, IoHeartOutline, IoPersonOutline, IoClose, IoMenu } from 'react-icons/io5';
-import { brand } from '../../constants/brand';
-import logo from '../../assets/stylee_atelier_icon.png';
+import { Menu, Transition } from '@headlessui/react';
 import { CartContext } from '../../context/CartContext';
 import { WishlistContext } from '../../context/WishlistContext';
 import { AuthContext } from '../../context/AuthContext';
@@ -56,10 +54,10 @@ export const Navbar = () => {
           <IoMenu size={24} />
         </button>
 
-        {/* Brand Logo - icon + text */}
-        <Link to="/" className="flex items-center space-x-2 font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
-          <img src={logo} alt="Stylee Atelier" className="h-8 w-auto" />
-          <span>{brand.name} <span className="font-semibold text-primary">{brand.suffix}</span></span>
+        {/* Brand Logo — PNG icon + text wordmark */}
+        <Link to="/" className="flex items-center gap-3 -ml-2 font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
+          <img src="/SA%20logo.png" alt="Stylee Atelier" className="h-8 w-auto object-contain scale-[1.5]" />
+          <span>Stylee <span className="font-semibold text-primary">Atelier</span></span>
         </Link>
 
         {/* Nav Links - Inter Caps 10% spacing */}
@@ -199,9 +197,10 @@ export const Navbar = () => {
           
           <div className="relative w-full max-w-xs bg-surface-container-lowest h-full shadow-xl flex flex-col p-6 z-10 transition-transform duration-300">
             <div className="flex items-center justify-between border-b border-outline-variant pb-6 mb-8">
-              {/* Brand Logo - defined via brand constants */}
-              <Link to="/" className="font-heading font-light text-base tracking-[0.2em] uppercase text-ink">
-                {brand.name} <span className="font-semibold text-primary">{brand.suffix}</span>
+              {/* Brand Logo — PNG icon + text wordmark (mobile drawer) */}
+              <Link to="/" className="flex items-center gap-3 -ml-1 font-heading font-light text-sm tracking-[0.2em] uppercase text-ink">
+                <img src="/SA%20logo.png" alt="Stylee Atelier" className="h-6 w-auto object-contain scale-[1.5]" />
+                <span>Stylee <span className="font-semibold text-primary">Atelier</span></span>
               </Link>
               <button 
                 onClick={() => setMobileMenuOpen(false)}
